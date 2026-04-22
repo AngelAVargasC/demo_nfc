@@ -67,4 +67,4 @@ logs/
 .cache/
 tmp/
 temp/
-
+node_modules/
