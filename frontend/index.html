@@ -12,7 +12,8 @@
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; font-feature-settings: 'cv02','cv03','cv04','cv11'; }
       body { background: #f7f8fa; color: #0b1118; }
-      #root { min-height: 100vh; }
+      html, body { height: 100%; overflow: hidden; }
+      #root { height: 100%; overflow: hidden; }
       @keyframes sigam-pulse { 0% { transform: scale(1); opacity: 0.35; } 80% { transform: scale(2.2); opacity: 0; } 100% { opacity: 0; } }
       @keyframes sigam-shimmer { 0% { background-position: -200px 0; } 100% { background-position: calc(200px + 100%) 0; } }
       @keyframes sigam-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
