@@ -9,6 +9,8 @@ from app.shared.config.settings import settings
 from app.shared.middleware.logging import LoggingMiddleware
 from app.shared.middleware.error_handler import ErrorHandlerMiddleware
 from app.shared.database.redis import close_redis
+from app.shared.database.base import engine, Base
+from app.shared.database.migrations.seed import run_seed
 from app.apps.users.interfaces.router import router as users_router
 from app.apps.access.interfaces.router import router as access_router
 from app.apps.finance.interfaces.router import router as finance_router
@@ -19,6 +21,13 @@ limiter = Limiter(key_func=get_remote_address)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    # Demo bootstrap for SQLite/Railway ephemeral containers.
+    if settings.DATABASE_URL.startswith("sqlite+"):
+        await run_seed()
+
     yield
     await close_redis()
 

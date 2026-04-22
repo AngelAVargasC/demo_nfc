@@ -8,6 +8,7 @@ import app.shared.database.all_models  # noqa: F401 — registra todos los model
 from app.shared.database.base import AsyncSessionLocal, engine, Base
 from app.shared.security.hashing import hash_password
 from app.apps.users.domain.models import User, Logia, MasonicDegree, UserStatus
+from sqlalchemy import select
 from app.apps.access.domain.models import NFCTag
 from app.apps.finance.domain.models import FinancialConfig, Payment, PaymentStatus, ChargeType
 from app.apps.documents.domain.models import Document, DocumentType, DocumentStatus
@@ -18,6 +19,11 @@ async def run_seed():
         await conn.run_sync(Base.metadata.create_all)
 
     async with AsyncSessionLocal() as db:
+        existing_admin = await db.execute(select(User.id).where(User.email == "admin@sigam.mx"))
+        if existing_admin.scalar_one_or_none():
+            print("ℹ️ Seed omitido: datos demo ya existen")
+            return
+
         # --- Logias ---
         chilam = Logia(name="Chilam Balam", number="3", city="Mérida, Yucatán")
         logia2 = Logia(name="Luz y Verdad", number="1", city="Ciudad de México")
