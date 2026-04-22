@@ -4,6 +4,7 @@ import { Wifi, CheckCircle, XCircle, Clock, User, Shield } from 'lucide-react'
 import api from '@/shared/services/api'
 import { useNFCStore } from '@/store/nfcStore'
 import { useTheme } from '@/shared/theme/theme'
+import { useResponsive } from '@/shared/hooks/useResponsive'
 
 const DEMO_TAGS = [
   { uid: '04:A1:B2:C3', label: 'Alejandro Mendoza', sub: 'Maestro · Paz y Salvo' },
@@ -22,6 +23,7 @@ const DEGREE_LABELS: Record<number, string> = { 1: 'Aprendiz', 2: 'Compañero', 
 
 export default function NFCPage() {
   const { colors, mode } = useTheme()
+  const { isMobile, isTablet } = useResponsive()
   const [uid, setUid] = useState('')
   const [chamber, setChamber] = useState('')
   const [loading, setLoading] = useState(false)
@@ -75,14 +77,14 @@ export default function NFCPage() {
   }
 
   return (
-    <div style={{ display: 'flex', gap: 20, height: 'calc(100vh - 96px)' }}>
+    <div style={{ display: 'flex', gap: 20, height: isMobile ? 'auto' : 'calc(100vh - 96px)', flexDirection: isMobile ? 'column' : 'row' }}>
 
       {/* Panel principal de resultado */}
       <div style={{
         flex: 1, background: panelBg, border: `2px solid ${panelBorder}`,
         borderRadius: 20, display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
-        transition: 'all 350ms ease', position: 'relative', overflow: 'hidden', minHeight: 0,
+        transition: 'all 350ms ease', position: 'relative', overflow: 'hidden', minHeight: isMobile ? 420 : 0,
       }}>
         <AnimatePresence mode="wait">
 
@@ -93,7 +95,7 @@ export default function NFCPage() {
               <motion.div animate={{ scale: [1, 1.06, 1] }} transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}>
                 <Wifi size={80} color="#00a88e" style={{ marginBottom: 20 }} />
               </motion.div>
-              <h2 style={{ color: colors.text, fontSize: 24, fontWeight: 700, margin: 0 }}>Lector NFC Activo</h2>
+              <h2 style={{ color: colors.text, fontSize: isMobile ? 20 : 24, fontWeight: 700, margin: 0 }}>Lector NFC Activo</h2>
               <p style={{ color: colors.muted, marginTop: 10, fontSize: 15 }}>
                 Acerque el pin o pulsera NFC al dispositivo<br />o seleccione un miembro de la lista demo
               </p>
@@ -215,7 +217,7 @@ export default function NFCPage() {
       </div>
 
       {/* Panel lateral de control */}
-      <div style={{ width: 300, display: 'flex', flexDirection: 'column', gap: 14, minHeight: 0 }}>
+      <div style={{ width: isMobile ? '100%' : isTablet ? 280 : 300, display: 'flex', flexDirection: 'column', gap: 14, minHeight: 0 }}>
 
         {/* Control de escaneo */}
         <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 16, padding: 18 }}>
@@ -241,7 +243,7 @@ export default function NFCPage() {
             <label style={{ fontSize: 11, color: colors.muted, display: 'block', marginBottom: 5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
               UID Manual
             </label>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, flexDirection: isMobile ? 'column' : 'row' }}>
               <input
                 value={uid}
                 onChange={e => setUid(e.target.value)}

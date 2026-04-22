@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { Users, User, Mail, Shield, Search, UserCheck, Briefcase } from 'lucide-react'
 import api from '@/shared/services/api'
 import { useTheme } from '@/shared/theme/theme'
+import { useResponsive } from '@/shared/hooks/useResponsive'
 
 const roleColor: Record<string, string> = {
   admin: '#a855f7', secretaria: '#3b82f6', tesorero: '#f59e0b',
@@ -13,6 +14,7 @@ const degreeLabel = (d: number) => ({ 1: 'Aprendiz', 2: 'Compañero', 3: 'Maestr
 
 export default function UsersPage() {
   const { colors, mode } = useTheme()
+  const { isMobile, isTablet } = useResponsive()
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -65,12 +67,12 @@ export default function UsersPage() {
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}>
       <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: colors.text, marginBottom: 4 }}>Usuarios</h1>
+          <h1 style={{ fontSize: isMobile ? 20 : 24, fontWeight: 800, color: colors.text, marginBottom: 4 }}>Usuarios</h1>
           <p style={{ color: colors.muted, fontSize: 13 }}>Gestión de perfiles, roles y estado operativo</p>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(140px, 1fr))', gap: 12, marginBottom: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, minmax(140px, 1fr))' : 'repeat(4, minmax(140px, 1fr))', gap: 12, marginBottom: 14 }}>
         {[
           { label: 'Total', value: stats.total, icon: Users, color: '#00a88e' },
           { label: 'Activos', value: stats.active, icon: UserCheck, color: '#00a88e' },
@@ -87,7 +89,7 @@ export default function UsersPage() {
         ))}
       </div>
 
-      <div style={{ ...cardStyle, padding: 12, marginBottom: 14, display: 'grid', gridTemplateColumns: '1.6fr 1fr 1fr', gap: 10 }}>
+      <div style={{ ...cardStyle, padding: 12, marginBottom: 14, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : '1.6fr 1fr 1fr', gap: 10 }}>
         <div style={{ position: 'relative' }}>
           <Search size={14} color={colors.muted} style={{ position: 'absolute', left: 10, top: 11 }} />
           <input
@@ -141,7 +143,7 @@ export default function UsersPage() {
         {filteredUsers.map((u: any) => (
           <div key={u.id} style={{
             background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12,
-            padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16,
+            padding: isMobile ? '14px' : '16px 20px', display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', gap: 16, flexDirection: isMobile ? 'column' : 'row',
           }}>
             <div style={{
               width: 44, height: 44, borderRadius: '50%', background: '#e6f6f3',
@@ -151,14 +153,14 @@ export default function UsersPage() {
                 ? <img src={u.photo_url} style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }} />
                 : <User size={22} color="#00a88e" />}
             </div>
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, width: isMobile ? '100%' : 'auto' }}>
               <div style={{ fontSize: 15, fontWeight: 600, color: colors.text }}>{u.full_name}</div>
-              <div style={{ fontSize: 12, color: colors.muted, display: 'flex', gap: 12, marginTop: 2 }}>
+              <div style={{ fontSize: 12, color: colors.muted, display: 'flex', gap: 12, marginTop: 2, flexWrap: 'wrap' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Mail size={11} />{u.email}</span>
                 <span>· {degreeLabel(u.degree)}</span>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, width: isMobile ? '100%' : 'auto', flexWrap: 'wrap' }}>
               <span style={{
                 fontSize: 11, padding: '3px 10px', borderRadius: 20,
                 background: `${roleColor[u.role] ?? '#64748b'}15`,

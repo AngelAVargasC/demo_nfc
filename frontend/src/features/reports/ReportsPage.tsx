@@ -5,6 +5,7 @@ import {
 import { BarChart2, Download } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useTheme } from '@/shared/theme/theme'
+import { useResponsive } from '@/shared/hooks/useResponsive'
 
 const asistenciaData = [
   { mes: 'Ene', asistencias: 42, invitados: 10 },
@@ -42,14 +43,15 @@ const COLORS_CHARGES = ['#00a88e', '#3b82f6', '#a855f7', '#f59e0b']
 
 export default function ReportsPage() {
   const { colors } = useTheme()
+  const { isMobile, isTablet } = useResponsive()
   const totalIncome = ingresosData.reduce((acc, curr) => acc + curr.ingresos, 0)
   const totalExpense = ingresosData.reduce((acc, curr) => acc + curr.egresos, 0)
   const net = totalIncome - totalExpense
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}>
-      <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', flexDirection: isMobile ? 'column' : 'row', gap: 10 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: colors.text }}>Reportes</h1>
+          <h1 style={{ fontSize: isMobile ? 20 : 22, fontWeight: 700, color: colors.text }}>Reportes</h1>
           <p style={{ color: colors.muted, fontSize: 13 }}>Inteligencia de negocio por Logia</p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -62,7 +64,7 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(130px, 1fr))', gap: 12, marginBottom: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, minmax(130px, 1fr))' : 'repeat(4, minmax(130px, 1fr))', gap: 12, marginBottom: 14 }}>
         {[
           { label: 'Ingreso total', value: `$${totalIncome.toLocaleString()}`, color: '#00a88e' },
           { label: 'Egreso total', value: `$${totalExpense.toLocaleString()}`, color: '#ef4444' },
@@ -76,8 +78,8 @@ export default function ReportsPage() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, padding: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 20 }}>
+        <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, padding: isMobile ? 14 : 24 }}>
           <h3 style={{ fontSize: 15, fontWeight: 600, color: colors.text, marginBottom: 20 }}>Asistencia mensual (miembros vs invitados)</h3>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={asistenciaData}>
@@ -92,7 +94,7 @@ export default function ReportsPage() {
           </ResponsiveContainer>
         </div>
 
-        <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, padding: 24 }}>
+        <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, padding: isMobile ? 14 : 24 }}>
           <h3 style={{ fontSize: 15, fontWeight: 600, color: colors.text, marginBottom: 20 }}>Ingresos vs egresos</h3>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={ingresosData}>
@@ -107,7 +109,7 @@ export default function ReportsPage() {
           </ResponsiveContainer>
         </div>
 
-        <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, padding: 24 }}>
+        <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, padding: isMobile ? 14 : 24 }}>
           <h3 style={{ fontSize: 15, fontWeight: 600, color: colors.text, marginBottom: 20 }}>Estado de pagos</h3>
           <ResponsiveContainer width="100%" height={230}>
             <PieChart>
@@ -122,7 +124,7 @@ export default function ReportsPage() {
           </ResponsiveContainer>
         </div>
 
-        <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, padding: 24 }}>
+        <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, padding: isMobile ? 14 : 24 }}>
           <h3 style={{ fontSize: 15, fontWeight: 600, color: colors.text, marginBottom: 20 }}>Distribucion de cargos</h3>
           <ResponsiveContainer width="100%" height={230}>
             <PieChart>
@@ -137,9 +139,9 @@ export default function ReportsPage() {
           </ResponsiveContainer>
         </div>
 
-        <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, padding: 24, gridColumn: '1 / -1' }}>
+        <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, padding: isMobile ? 14 : 24, gridColumn: '1 / -1' }}>
           <h3 style={{ fontSize: 15, fontWeight: 600, color: colors.text, marginBottom: 16 }}>Métricas clave</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 16 }}>
             {[
               { label: 'Total miembros', value: '127', change: '+3 este mes' },
               { label: 'Tasa asistencia', value: '78%', change: '+5% vs mes ant.' },

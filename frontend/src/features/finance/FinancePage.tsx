@@ -2,9 +2,11 @@ import { useMemo, useState } from 'react'
 import { DollarSign, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useTheme } from '@/shared/theme/theme'
+import { useResponsive } from '@/shared/hooks/useResponsive'
 
 export default function FinancePage() {
   const { colors, mode } = useTheme()
+  const { isMobile } = useResponsive()
   const [statusFilter, setStatusFilter] = useState('all')
   const paymentStatusStyle = {
     paid: {
@@ -38,7 +40,7 @@ export default function FinancePage() {
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: colors.text }}>Finanzas</h1>
+        <h1 style={{ fontSize: isMobile ? 20 : 22, fontWeight: 700, color: colors.text }}>Finanzas</h1>
         <p style={{ color: colors.muted, fontSize: 13 }}>Gestión financiera por Logia</p>
       </div>
 
@@ -61,8 +63,8 @@ export default function FinancePage() {
         ))}
       </div>
 
-      <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, padding: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, padding: isMobile ? 14 : 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', marginBottom: 16, flexDirection: isMobile ? 'column' : 'row', gap: 10 }}>
           <h2 style={{ fontSize: 15, fontWeight: 600, color: colors.text }}>Cobros recientes</h2>
           <select
             value={statusFilter}
@@ -76,8 +78,8 @@ export default function FinancePage() {
           </select>
         </div>
         {filteredPayments.map((p, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: `1px solid ${colors.border}` }}>
-            <div style={{ flex: 1 }}>
+          <div key={i} style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', gap: 12, padding: '12px 0', borderBottom: `1px solid ${colors.border}`, flexDirection: isMobile ? 'column' : 'row' }}>
+            <div style={{ flex: 1, width: isMobile ? '100%' : 'auto' }}>
               <div style={{ fontSize: 14, color: colors.text, fontWeight: 500 }}>{p.name}</div>
               <div style={{ fontSize: 12, color: colors.muted }}>{p.type}</div>
             </div>

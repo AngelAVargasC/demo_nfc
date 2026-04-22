@@ -6,9 +6,10 @@ import api from '@/shared/services/api'
 import { useTheme } from '@/shared/theme/theme'
 import { radius } from '@/shared/theme/theme'
 import { StatusDot } from '@/shared/components/ui'
+import { useResponsive } from '@/shared/hooks/useResponsive'
 import {
   Users, DollarSign, FileText, BarChart2,
-  LogOut, Home, Moon, Sun, Radio, Search, Command, Bell, ChevronDown, Settings, ShieldCheck,
+  LogOut, Home, Moon, Sun, Radio, Search, Command, Bell, ChevronDown, Settings, ShieldCheck, Menu, X,
 } from 'lucide-react'
 
 type NavItem = { to: string; icon: any; label: string; group: 'principal' | 'gestion' | 'inteligencia' }
@@ -33,12 +34,17 @@ export function Layout({ children }: { children: ReactNode }) {
   const location = useLocation()
   const navigate = useNavigate()
   const { mode, colors, toggleMode } = useTheme()
+  const { isMobile, isTablet } = useResponsive()
   const [now, setNow] = useState(() => new Date())
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 30_000)
     return () => clearInterval(id)
   }, [])
+  useEffect(() => {
+    setSidebarOpen(false)
+  }, [location.pathname])
 
   const handleLogout = async () => {
     try { await api.post('/auth/logout') } catch {}
@@ -52,14 +58,8 @@ export function Layout({ children }: { children: ReactNode }) {
     (acc[item.group] ||= []).push(item); return acc
   }, {} as Record<string, NavItem[]>)
 
-  return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: colors.appBg, color: colors.text }}>
-      {/* ============ SIDEBAR ============ */}
-      <aside style={{
-        width: 256, background: colors.surface, borderRight: `1px solid ${colors.border}`,
-        display: 'flex', flexDirection: 'column',
-        position: 'sticky', top: 0, height: '100vh',
-      }}>
+  const sidebarContent = (
+    <>
         <div style={{ padding: '18px 18px 14px', borderBottom: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
             width: 38, height: 38, borderRadius: 10,
@@ -190,36 +190,102 @@ export function Layout({ children }: { children: ReactNode }) {
             </button>
           </div>
         </div>
-      </aside>
+    </>
+  )
+
+  return (
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: colors.appBg, color: colors.text }}>
+      {!isMobile && (
+        <aside style={{
+          width: isTablet ? 232 : 256, background: colors.surface, borderRight: `1px solid ${colors.border}`,
+          display: 'flex', flexDirection: 'column',
+          position: 'sticky', top: 0, height: '100vh', flexShrink: 0, overflow: 'hidden',
+        }}>
+          {sidebarContent}
+        </aside>
+      )}
+
+      {isMobile && (
+        <AnimatePresence>
+          {sidebarOpen && (
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setSidebarOpen(false)}
+                style={{
+                  position: 'fixed',
+                  inset: 0,
+                  zIndex: 39,
+                  background: 'rgba(0,0,0,0.45)',
+                }}
+              />
+              <motion.aside
+                initial={{ x: -320 }}
+                animate={{ x: 0 }}
+                exit={{ x: -320 }}
+                transition={{ duration: 0.2 }}
+                style={{
+                  width: 288,
+                  background: colors.surface,
+                  borderRight: `1px solid ${colors.border}`,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  height: '100vh',
+                  zIndex: 40,
+                  overflow: 'hidden',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '10px 10px 0' }}>
+                  <button onClick={() => setSidebarOpen(false)} style={iconBtn(colors)}>
+                    <X size={15} />
+                  </button>
+                </div>
+                {sidebarContent}
+              </motion.aside>
+            </>
+          )}
+        </AnimatePresence>
+      )}
 
       {/* ============ CONTENT ============ */}
-      <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+      <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Topbar */}
         <header style={{
           position: 'sticky', top: 0, zIndex: 20,
-          height: 60,
+          height: isMobile ? 56 : 60,
           background: `${colors.appBg}e6`,
           backdropFilter: 'saturate(140%) blur(10px)',
           WebkitBackdropFilter: 'saturate(140%) blur(10px)',
           borderBottom: `1px solid ${colors.border}`,
           display: 'flex', alignItems: 'center', gap: 18,
-          padding: '0 28px',
+          padding: isMobile ? '0 14px' : isTablet ? '0 18px' : '0 28px',
         }}>
+          {isMobile && (
+            <button onClick={() => setSidebarOpen(true)} style={iconBtn(colors)}>
+              <Menu size={16} />
+            </button>
+          )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: colors.muted }}>
             <ShieldCheck size={14} color={colors.primary} />
             <span style={{ fontWeight: 600, color: colors.text }}>
               {currentPage?.label ?? 'Panel'}
             </span>
-            <ChevronDown size={12} style={{ opacity: 0.5 }} />
-            <span>Chilam Balam N°3</span>
+            {!isMobile && <ChevronDown size={12} style={{ opacity: 0.5 }} />}
+            {!isMobile && <span>Chilam Balam N°3</span>}
           </div>
 
+          {!isMobile && (
           <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
             <button
               onClick={() => {}}
               style={{
                 display: 'flex', alignItems: 'center', gap: 10,
-                padding: '7px 14px', width: '100%', maxWidth: 420,
+                padding: '7px 14px', width: '100%', maxWidth: isTablet ? 280 : 420,
                 background: colors.surfaceAlt,
                 border: `1px solid ${colors.border}`,
                 borderRadius: radius.md,
@@ -241,6 +307,7 @@ export function Layout({ children }: { children: ReactNode }) {
               </span>
             </button>
           </div>
+          )}
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button title="Notificaciones" style={iconBtn(colors)}>
@@ -263,7 +330,12 @@ export function Layout({ children }: { children: ReactNode }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.22, ease: [0.2, 0.7, 0.2, 1] }}
-            style={{ flex: 1, padding: '28px 28px 44px', minWidth: 0 }}
+            style={{
+              flex: 1,
+              padding: isMobile ? '14px 14px 22px' : isTablet ? '18px 18px 28px' : '28px 28px 44px',
+              minWidth: 0,
+              overflow: 'auto',
+            }}
           >
             {children}
           </motion.div>

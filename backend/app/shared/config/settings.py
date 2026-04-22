@@ -1,6 +1,6 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, NoDecode
 from pydantic import field_validator
-from typing import List
+from typing import Annotated, List
 import json
 
 
@@ -13,17 +13,21 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
-    CORS_ORIGINS: List[str] = ["http://localhost:5173"]
+    CORS_ORIGINS: Annotated[List[str], NoDecode] = ["http://localhost:5173"]
     HASH_ALGORITHM: str = "argon2"
     NFC_REPLAY_WINDOW_SECONDS: int = 30
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def parse_cors_origins(cls, value):
+        if value is None:
+            return []
         if isinstance(value, list):
             return value
         if isinstance(value, str):
             stripped = value.strip()
+            if not stripped:
+                return []
             # Remove accidental wrapping quotes from platform env UIs.
             if (stripped.startswith('"') and stripped.endswith('"')) or (stripped.startswith("'") and stripped.endswith("'")):
                 stripped = stripped[1:-1].strip()

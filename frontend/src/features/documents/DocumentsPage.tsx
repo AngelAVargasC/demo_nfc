@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { FileText, CheckCircle, Clock, XCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useTheme } from '@/shared/theme/theme'
+import { useResponsive } from '@/shared/hooks/useResponsive'
 
 const mockDocs = [
   { title: 'Plancha de Iniciación — Juan García', type: 'Plancha', status: 'approved_gran_logia', code: 'A1B2C3D4', date: '2026-03-15' },
@@ -19,6 +20,7 @@ const buildStatusConfig = (isLight: boolean): Record<string, { label: string; co
 
 export default function DocumentsPage() {
   const { colors, mode } = useTheme()
+  const { isMobile, isTablet } = useResponsive()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const statusConfig = buildStatusConfig(mode === 'light')
@@ -34,11 +36,11 @@ export default function DocumentsPage() {
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: colors.text }}>Documentos</h1>
+        <h1 style={{ fontSize: isMobile ? 20 : 22, fontWeight: 700, color: colors.text }}>Documentos</h1>
         <p style={{ color: colors.muted, fontSize: 13 }}>Gestión de expedientes digitales</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr', gap: 10, marginBottom: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : '1.6fr 1fr', gap: 10, marginBottom: 12 }}>
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -63,13 +65,13 @@ export default function DocumentsPage() {
           const s = statusConfig[doc.status]
           const StatusIcon = s.icon
           return (
-            <div key={doc.code} style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div key={doc.code} style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, padding: isMobile ? '14px' : '16px 20px', display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', gap: 16, flexDirection: isMobile ? 'column' : 'row' }}>
               <div style={{ background: '#e6f6f3', borderRadius: 10, padding: 12, flexShrink: 0 }}>
                 <FileText size={22} color="#00a88e" />
               </div>
-              <div style={{ flex: 1 }}>
+              <div style={{ flex: 1, width: isMobile ? '100%' : 'auto' }}>
                 <div style={{ fontSize: 14, fontWeight: 600, color: colors.text }}>{doc.title}</div>
-                <div style={{ fontSize: 12, color: colors.muted, marginTop: 2, display: 'flex', gap: 10 }}>
+                <div style={{ fontSize: 12, color: colors.muted, marginTop: 2, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   <span>{doc.type}</span>
                   <span>·</span>
                   <span style={{ fontFamily: 'monospace' }}>#{doc.code}</span>
@@ -77,7 +79,7 @@ export default function DocumentsPage() {
                   <span>{doc.date}</span>
                 </div>
               </div>
-              <span style={{ fontSize: 11, padding: '4px 12px', borderRadius: 20, background: s.bg, color: s.color, border: `1px solid ${s.border}`, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ fontSize: 11, padding: '4px 12px', borderRadius: 20, background: s.bg, color: s.color, border: `1px solid ${s.border}`, display: 'flex', alignItems: 'center', gap: 4, alignSelf: isMobile ? 'flex-start' : 'center' }}>
                 <StatusIcon size={12} />
                 {s.label}
               </span>

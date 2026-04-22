@@ -5,6 +5,7 @@ import api from '@/shared/services/api'
 import { useAuthStore } from '@/store/authStore'
 import toast from 'react-hot-toast'
 import { useTheme } from '@/shared/theme/theme'
+import { useResponsive } from '@/shared/hooks/useResponsive'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('admin@sigam.mx')
@@ -14,6 +15,7 @@ export default function LoginPage() {
   const { setAccessToken, setUser } = useAuthStore()
   const navigate = useNavigate()
   const { colors } = useTheme()
+  const { isMobile, isTablet } = useResponsive()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,10 +38,10 @@ export default function LoginPage() {
 
   return (
     <div style={{
-      minHeight: '100vh', background: colors.appBg, display: 'flex',
+      minHeight: '100vh', background: colors.appBg, display: 'flex', flexDirection: isMobile ? 'column' : 'row',
     }}>
-      <div style={{
-        width: '60%', minHeight: '100vh', position: 'relative',
+      {!isMobile && <div style={{
+        width: isTablet ? '52%' : '60%', minHeight: '100vh', position: 'relative',
         backgroundImage: 'url("/images/masonsidelogin.jpg")',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
@@ -57,30 +59,30 @@ export default function LoginPage() {
           background: `linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(11,15,20,0.08) 20%, ${colors.appBg} 100%)`,
           pointerEvents: 'none',
         }} />
-      </div>
+      </div>}
 
       <div style={{
-        width: '40%', minHeight: '100vh', display: 'flex',
-        alignItems: 'center', justifyContent: 'center', padding: '38px 34px',
+        width: isMobile ? '100%' : isTablet ? '48%' : '40%', minHeight: '100vh', display: 'flex',
+        alignItems: 'center', justifyContent: 'center', padding: isMobile ? '24px 18px' : '38px 34px',
         background: colors.appBg,
         position: 'relative',
       }}>
-        <div style={{ position: 'absolute', top: 24, left: 26, width: 170, height: 62, overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: isMobile ? 16 : 24, left: isMobile ? 14 : 26, width: isMobile ? 136 : 170, height: 62, overflow: 'hidden' }}>
           <img
             src="/images/masonlogo-Photoroom.png"
             alt="Logo Gran Logia"
-            style={{ width: 170, height: 104, objectFit: 'cover', transform: 'translateY(-22px)', display: 'block' }}
+            style={{ width: isMobile ? 136 : 170, height: isMobile ? 84 : 104, objectFit: 'cover', transform: 'translateY(-22px)', display: 'block' }}
           />
         </div>
-        <div style={{ position: 'absolute', top: 28, right: 32, textAlign: 'right' }}>
-          <h1 style={{ fontSize: 34, fontWeight: 800, color: colors.text, margin: 0, lineHeight: 1 }}>SIGAM</h1>
-          <p style={{ fontSize: 12, color: colors.muted, marginTop: 6, marginBottom: 0 }}>Sistema Integral de Gestión Masónica</p>
+        <div style={{ position: 'absolute', top: isMobile ? 18 : 28, right: isMobile ? 14 : 32, textAlign: 'right' }}>
+          <h1 style={{ fontSize: isMobile ? 27 : 34, fontWeight: 800, color: colors.text, margin: 0, lineHeight: 1 }}>SIGAM</h1>
+          <p style={{ fontSize: isMobile ? 10.5 : 12, color: colors.muted, marginTop: 6, marginBottom: 0 }}>Sistema Integral de Gestión Masónica</p>
         </div>
 
         <div style={{
-          width: '100%', maxWidth: 470,
+          width: '100%', maxWidth: isMobile ? 420 : 470,
         }}>
-          <div style={{ height: 34 }} />
+          <div style={{ height: isMobile ? 60 : 34 }} />
 
           <form onSubmit={handleLogin}>
             <div style={{ marginBottom: 18 }}>

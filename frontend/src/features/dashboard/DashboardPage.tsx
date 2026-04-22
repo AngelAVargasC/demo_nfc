@@ -5,6 +5,7 @@ import { Shield, CheckCircle, XCircle, Activity, Clock3, AlertTriangle } from 'l
 import { useAuthStore } from '@/store/authStore'
 import api from '@/shared/services/api'
 import { useTheme } from '@/shared/theme/theme'
+import { useResponsive } from '@/shared/hooks/useResponsive'
 
 function StatCard({ icon: Icon, label, value, color, text, muted, surface, border }: { icon: any; label: string; value: string | number; color: string; text: string; muted: string; surface: string; border: string }) {
   return (
@@ -26,6 +27,7 @@ function StatCard({ icon: Icon, label, value, color, text, muted, surface, borde
 export default function DashboardPage() {
   const { user } = useAuthStore()
   const { colors } = useTheme()
+  const { isMobile, isTablet } = useResponsive()
   const statusColors = {
     granted: {
       background: colors.surface === '#ffffff' ? '#e6f6f3' : '#0d3b34',
@@ -63,22 +65,22 @@ export default function DashboardPage() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}>
-      <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 26, fontWeight: 700, color: colors.text }}>
+      <div style={{ marginBottom: isMobile ? 18 : 32 }}>
+        <h1 style={{ fontSize: isMobile ? 20 : 26, fontWeight: 700, color: colors.text }}>
           Bienvenido, {user?.full_name?.split(' ')[0]}
         </h1>
-        <p style={{ color: colors.muted, marginTop: 4 }}>Panel de control — {new Date().toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        <p style={{ color: colors.muted, marginTop: 4, fontSize: isMobile ? 12 : 14 }}>Panel de control — {new Date().toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(170px, 1fr))', gap: 12, marginBottom: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2, minmax(170px, 1fr))' : 'repeat(4, minmax(170px, 1fr))', gap: 12, marginBottom: 14 }}>
         <StatCard icon={Activity} label="Eventos hoy" value={events?.length ?? 0} color="#00a88e" text={colors.text} muted={colors.muted} surface={colors.surface} border={colors.border} />
         <StatCard icon={CheckCircle} label="Accesos permitidos" value={granted} color="#3b82f6" text={colors.text} muted={colors.muted} surface={colors.surface} border={colors.border} />
         <StatCard icon={XCircle} label="Accesos denegados" value={denied} color="#ef4444" text={colors.text} muted={colors.muted} surface={colors.surface} border={colors.border} />
         <StatCard icon={Shield} label="Tasa de exito" value={`${successRate}%`} color="#a855f7" text={colors.text} muted={colors.muted} surface={colors.surface} border={colors.border} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12 }}>
-      <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, padding: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap: 12 }}>
+      <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, padding: isMobile ? 14 : 24 }}>
         <h2 style={{ fontSize: 16, fontWeight: 600, color: colors.text, marginBottom: 16 }}>Últimos eventos de acceso</h2>
         {!events && <div style={{ color: colors.muted, fontSize: 14 }}>Cargando...</div>}
         {events?.length === 0 && <div style={{ color: colors.muted, fontSize: 14 }}>Sin eventos registrados</div>}
@@ -108,7 +110,7 @@ export default function DashboardPage() {
         ))}
       </div>
       <div style={{ display: 'grid', gap: 12 }}>
-        <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, padding: 16 }}>
+        <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, padding: isMobile ? 14 : 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, color: colors.text, fontWeight: 700 }}>
             <Clock3 size={16} /> Ultimo evento
           </div>
@@ -122,7 +124,7 @@ export default function DashboardPage() {
             </>
           ) : <div style={{ color: colors.muted, fontSize: 13 }}>Sin datos recientes.</div>}
         </div>
-        <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, padding: 16 }}>
+        <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, padding: isMobile ? 14 : 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, color: colors.text, fontWeight: 700 }}>
             <AlertTriangle size={16} /> Motivos de denegacion
           </div>
