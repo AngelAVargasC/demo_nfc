@@ -1,6 +1,7 @@
 import uuid
 import time
 from app.apps.access.domain.models import NFCTag, AccessEvent, AccessResult, DenialReason
+from app.apps.access.domain.utils import normalize_uid
 from app.apps.access.infrastructure.repository import NFCRepository, AccessEventRepository
 from app.apps.finance.infrastructure.repository import PaymentRepository
 from app.apps.users.domain.models import UserStatus
@@ -29,6 +30,7 @@ class NFCAccessUseCase:
         location: str | None,
         chamber_degree: int | None = None,
     ) -> dict:
+        uid = normalize_uid(uid)
         now = int(time.time())
         if abs(now - timestamp) > settings.NFC_REPLAY_WINDOW_SECONDS:
             await self._record_event(None, uid, AccessResult.DENIED, DenialReason.REPLAY_ATTACK, ip, device_info, location, nonce, chamber_degree)
@@ -100,6 +102,9 @@ class NFCManagementUseCase:
         self.event_repo = event_repo
 
     async def register_tag(self, uid: str, user_id: uuid.UUID) -> NFCTag:
+        uid = normalize_uid(uid)
+        if not uid:
+            raise ValueError("UID inválido")
         existing = await self.nfc_repo.get_by_uid(uid)
         if existing:
             raise ValueError("UID ya registrado")

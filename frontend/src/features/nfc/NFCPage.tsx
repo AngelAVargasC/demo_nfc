@@ -1,10 +1,15 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Wifi, CheckCircle, XCircle, Clock, User, Shield } from 'lucide-react'
 import api from '@/shared/services/api'
 import { useNFCStore } from '@/store/nfcStore'
 import { useTheme } from '@/shared/theme/theme'
 import { useResponsive } from '@/shared/hooks/useResponsive'
+import { useNFCReader, normalizeUid } from '@/shared/hooks/useNFCReader'
+import { feedbackRead, feedbackGranted, feedbackDenied, primeAudioContext } from '@/shared/hooks/nfcFeedback'
+import { useWakeLock } from '@/shared/hooks/useWakeLock'
+
+const AUTO_RESUME_KEY = 'sigam_nfc_auto_resume'
 
 const DEMO_TAGS = [
   { uid: '04:A1:B2:C3', label: 'Alejandro Mendoza', sub: 'Maestro · Paz y Salvo' },
@@ -36,7 +41,6 @@ export default function NFCPage() {
   const [uid, setUid] = useState('')
   const [chamber, setChamber] = useState('')
   const [loading, setLoading] = useState(false)
-  const [nfcBusy, setNfcBusy] = useState(false)
   const [users, setUsers] = useState<UserRow[]>([])
   const [usersLoading, setUsersLoading] = useState(false)
   const [usersError, setUsersError] = useState<string | null>(null)
@@ -48,34 +52,49 @@ export default function NFCPage() {
   const [enrollErr, setEnrollErr] = useState<string | null>(null)
   const { lastResult, history, setResult, clearResult, setScanning } = useNFCStore()
   const timerRef = useRef<ReturnType<typeof setTimeout>>()
+  const chamberRef = useRef<string>('')
+  const loadingRef = useRef(false)
+  useEffect(() => { chamberRef.current = chamber }, [chamber])
+  useEffect(() => { loadingRef.current = loading }, [loading])
 
-  const scan = async (scanUid: string) => {
-    if (!scanUid.trim() || loading) return
+  const nfc = useNFCReader({ cooldownMs: 1800 })
+  useWakeLock(nfc.active)
+
+  const scan = useCallback(async (scanUid: string) => {
+    const normalized = normalizeUid(scanUid) || scanUid.trim()
+    if (!normalized || loadingRef.current) return
+    loadingRef.current = true
     setLoading(true)
     setScanning(true)
     clearResult()
+    feedbackRead()
 
     try {
       const { data } = await api.post('/access/scan', {
-        uid: scanUid,
-        chamber_degree: chamber ? parseInt(chamber) : null,
+        uid: normalized,
+        chamber_degree: chamberRef.current ? parseInt(chamberRef.current) : null,
       })
-      setResult({
+      const resultData = {
         result: data.data.result,
         user: data.data.user,
         reason: data.data.reason ?? null,
         message: data.data.message ?? null,
-      })
+      }
+      setResult(resultData)
+      if (resultData.result === 'granted') feedbackGranted()
+      else feedbackDenied()
     } catch {
       setResult({ result: 'denied', user: null, reason: 'error', message: 'Error de conexión con el servidor' })
+      feedbackDenied()
     } finally {
+      loadingRef.current = false
       setLoading(false)
       setScanning(false)
     }
 
     clearTimeout(timerRef.current)
     timerRef.current = setTimeout(clearResult, 10000)
-  }
+  }, [clearResult, setResult, setScanning])
 
   useEffect(() => () => clearTimeout(timerRef.current), [])
   useEffect(() => {
@@ -108,41 +127,36 @@ export default function NFCPage() {
     fontSize: 13, outline: 'none', width: '100%', boxSizing: 'border-box' as const,
   }
 
-  const readUidFromDevice = async () => {
-    if (!('NDEFReader' in window)) {
-      throw new Error('Este dispositivo/navegador no soporta Web NFC. Usa Android + Chrome o captura manual.')
+  const toggleAccessReader = async () => {
+    if (nfc.active) {
+      nfc.stop()
+      try { localStorage.setItem(AUTO_RESUME_KEY, 'paused') } catch {}
+      return
     }
-    const reader = new NDEFReader()
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 15000)
-    try {
-      await reader.scan({ signal: controller.signal })
-      const event = await new Promise<NDEFReadingEvent>((resolve, reject) => {
-        reader.addEventListener('reading', (ev) => resolve(ev))
-        controller.signal.addEventListener('abort', () => reject(new Error('Tiempo agotado al esperar lectura NFC')))
-      })
-      const serial = event.serialNumber?.trim()
-      if (!serial) throw new Error('No se pudo leer el UID del chip')
-      return serial
-    } finally {
-      clearTimeout(timeout)
-      controller.abort()
-    }
+    primeAudioContext()
+    const ok = await nfc.start((readUid) => {
+      setUid(readUid)
+      void scan(readUid)
+    })
+    if (ok) { try { localStorage.setItem(AUTO_RESUME_KEY, 'active') } catch {} }
   }
 
-  const handleRealAccessScan = async () => {
-    if (loading || nfcBusy) return
-    setNfcBusy(true)
-    try {
-      const readUid = await readUidFromDevice()
-      setUid(readUid)
-      await scan(readUid)
-    } catch (e: any) {
-      setResult({ result: 'denied', user: null, reason: 'error', message: e?.message ?? 'No fue posible leer NFC' })
-    } finally {
-      setNfcBusy(false)
+  useEffect(() => {
+    if (activeTab !== 'access') return
+    if (!nfc.isSupported) return
+    let paused = '0'
+    try { paused = localStorage.getItem(AUTO_RESUME_KEY) ?? '0' } catch {}
+    if (paused === 'paused') return
+    const tryAutoStart = async () => {
+      const state = await nfc.checkPermission()
+      if (state !== 'granted') return
+      await nfc.start((readUid) => {
+        setUid(readUid)
+        void scan(readUid)
+      })
     }
-  }
+    void tryAutoStart()
+  }, [activeTab, nfc.isSupported, nfc.checkPermission, nfc.start, scan])
 
   const loadUsers = async () => {
     setUsersLoading(true)
@@ -158,19 +172,16 @@ export default function NFCPage() {
   }
 
   const handleReadEnrollUid = async () => {
-    if (nfcBusy) return
-    setNfcBusy(true)
     setEnrollErr(null)
     setEnrollMsg(null)
-    try {
-      const readUid = await readUidFromDevice()
+    primeAudioContext()
+    const ok = await nfc.start((readUid) => {
+      feedbackRead()
       setEnrollUid(readUid)
-      setEnrollMsg('UID leído correctamente')
-    } catch (e: any) {
-      setEnrollErr(e?.message ?? 'No fue posible leer NFC')
-    } finally {
-      setNfcBusy(false)
-    }
+      setEnrollMsg('UID leído correctamente. Ahora asígnalo al usuario.')
+      nfc.stop()
+    })
+    if (!ok && nfc.error) setEnrollErr(nfc.error)
   }
 
   const handleEnroll = async () => {
@@ -179,13 +190,16 @@ export default function NFCPage() {
     setEnrollMsg(null)
     setEnrolling(true)
     try {
+      const normalized = normalizeUid(enrollUid) || enrollUid.trim()
       await api.post('/access/tags', {
-        uid: enrollUid.trim(),
+        uid: normalized,
         user_id: selectedUserId,
       })
-      setEnrollMsg('Chip asignado correctamente al usuario')
+      feedbackGranted()
+      setEnrollMsg(`Chip ${normalized} asignado correctamente`)
       setEnrollUid('')
     } catch (e: any) {
+      feedbackDenied()
       setEnrollErr(e?.response?.data?.message ?? 'No fue posible asignar el chip')
     } finally {
       setEnrolling(false)
@@ -244,10 +258,28 @@ export default function NFCPage() {
               <motion.div animate={{ scale: [1, 1.06, 1] }} transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}>
                 <Wifi size={80} color="#00a88e" style={{ marginBottom: 20 }} />
               </motion.div>
-              <h2 style={{ color: colors.text, fontSize: isMobile ? 20 : 24, fontWeight: 700, margin: 0 }}>Lector NFC Activo</h2>
+              <h2 style={{ color: colors.text, fontSize: isMobile ? 20 : 24, fontWeight: 700, margin: 0 }}>
+                {nfc.active ? 'Control de accesos activo' : 'Lector en espera'}
+              </h2>
               <p style={{ color: colors.muted, marginTop: 10, fontSize: 15 }}>
-                Acerque el pin o pulsera NFC al dispositivo<br />o seleccione un miembro de la lista demo
+                {nfc.active
+                  ? 'Acerque un chip al celular. Validación automática, sin tocar pantalla.'
+                  : 'Presione "Iniciar control de accesos" una sola vez para habilitarlo.'}
               </p>
+              {nfc.active && (
+                <div style={{
+                  marginTop: 18, display: 'inline-flex', alignItems: 'center', gap: 8,
+                  padding: '6px 14px', borderRadius: 999,
+                  background: mode === 'dark' ? '#0d3b34' : '#e6f6f3',
+                  border: '1px solid #00a88e', color: '#00a88e', fontSize: 12, fontWeight: 700,
+                }}>
+                  <span style={{
+                    width: 8, height: 8, borderRadius: '50%', background: '#00a88e',
+                    animation: 'nfcPulse 1.4s infinite',
+                  }} />
+                  EN VIVO
+                </div>
+              )}
             </motion.div>
           )}
 
@@ -393,18 +425,34 @@ export default function NFCPage() {
               UID Manual
             </label>
             <button
-              onClick={handleRealAccessScan}
-              disabled={loading || nfcBusy}
+              onClick={toggleAccessReader}
               style={{
-                width: '100%', marginBottom: 8, padding: '8px 12px',
-                background: '#00a88e', border: 'none', borderRadius: 8,
+                width: '100%', marginBottom: 6, padding: '10px 12px',
+                background: nfc.active ? '#ef4444' : '#00a88e', border: 'none', borderRadius: 8,
                 color: '#fff', fontSize: 13, fontWeight: 700,
-                cursor: loading || nfcBusy ? 'not-allowed' : 'pointer',
-                opacity: loading || nfcBusy ? 0.7 : 1,
+                cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               }}
             >
-              {nfcBusy ? 'Esperando lectura NFC...' : 'Leer chip con NFC del celular'}
+              {nfc.active && (
+                <span style={{
+                  width: 8, height: 8, borderRadius: '50%', background: '#fff',
+                  boxShadow: '0 0 0 0 rgba(255,255,255,0.8)',
+                  animation: 'nfcPulse 1.2s infinite',
+                }} />
+              )}
+              {nfc.active ? 'Control de accesos ACTIVO — Pausar' : 'Iniciar control de accesos'}
             </button>
+            <div style={{ fontSize: 11, color: nfc.active ? '#00a88e' : colors.muted, marginBottom: 8, minHeight: 16 }}>
+              {nfc.error
+                ? nfc.error
+                : nfc.active
+                  ? 'Acerca cualquier chip. Se validan automáticamente sin tocar nada.'
+                  : nfc.isSupported
+                    ? 'Toca una sola vez para habilitar el lector. Queda activo permanentemente.'
+                    : 'Web NFC no disponible en este navegador.'}
+            </div>
+            <style>{`@keyframes nfcPulse {0%{box-shadow:0 0 0 0 rgba(255,255,255,0.8)}70%{box-shadow:0 0 0 8px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}`}</style>
             <div style={{ display: 'flex', gap: 8, flexDirection: isMobile ? 'column' : 'row' }}>
               <input
                 value={uid}
@@ -525,17 +573,18 @@ export default function NFCPage() {
           <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 16, padding: 16 }}>
             <h3 style={{ margin: 0, marginBottom: 10, color: colors.text, fontSize: 15 }}>2) Leer y asignar chip</h3>
             <button
-              onClick={handleReadEnrollUid}
-              disabled={nfcBusy}
+              onClick={nfc.active ? nfc.stop : handleReadEnrollUid}
               style={{
-                width: '100%', marginBottom: 10, padding: '9px 12px',
-                background: '#00a88e', border: 'none', borderRadius: 8,
-                color: '#fff', fontSize: 13, fontWeight: 700,
-                cursor: nfcBusy ? 'not-allowed' : 'pointer', opacity: nfcBusy ? 0.7 : 1,
+                width: '100%', marginBottom: 8, padding: '10px 12px',
+                background: nfc.active ? '#ef4444' : '#00a88e', border: 'none', borderRadius: 8,
+                color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer',
               }}
             >
-              {nfcBusy ? 'Esperando lectura NFC...' : 'Leer UID desde NFC del celular'}
+              {nfc.active ? 'Esperando chip... Cancelar' : 'Leer UID desde NFC del celular'}
             </button>
+            <div style={{ fontSize: 11, color: colors.muted, marginBottom: 8, minHeight: 16 }}>
+              {nfc.error ? nfc.error : nfc.active ? 'Acerca el chip al celular.' : 'Se leerá un chip y se detendrá.'}
+            </div>
             <label style={{ fontSize: 11, color: colors.muted, display: 'block', marginBottom: 5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
               UID del chip
             </label>
