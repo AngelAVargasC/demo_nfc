@@ -1,0 +1,70 @@
+# =========================
+# OS / editor junk
+# =========================
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# =========================
+# Environment / secrets
+# =========================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+
+# =========================
+# Python / backend
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+backend/venv/
+backend/.venv/
+backend/sigam.db
+*.db
+
+# =========================
+# Node / frontend
+# =========================
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+# Runtime / logs
+# =========================
+*.log
+logs/
+
+# =========================
+# Cache / temp
+# =========================
+.cache/
+tmp/
+temp/
+
