@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Wifi, CheckCircle, XCircle, Clock, User, Shield } from 'lucide-react'
 import api from '@/shared/services/api'
@@ -20,13 +20,32 @@ const CHAMBERS = [
 ]
 
 const DEGREE_LABELS: Record<number, string> = { 1: 'Aprendiz', 2: 'Compañero', 3: 'Maestro' }
+type UserRow = {
+  id: string
+  full_name: string
+  email: string
+  degree: number
+  role: string
+  status: string
+}
 
 export default function NFCPage() {
   const { colors, mode } = useTheme()
   const { isMobile, isTablet } = useResponsive()
+  const [activeTab, setActiveTab] = useState<'access' | 'enroll'>('access')
   const [uid, setUid] = useState('')
   const [chamber, setChamber] = useState('')
   const [loading, setLoading] = useState(false)
+  const [nfcBusy, setNfcBusy] = useState(false)
+  const [users, setUsers] = useState<UserRow[]>([])
+  const [usersLoading, setUsersLoading] = useState(false)
+  const [usersError, setUsersError] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
+  const [selectedUserId, setSelectedUserId] = useState('')
+  const [enrollUid, setEnrollUid] = useState('')
+  const [enrolling, setEnrolling] = useState(false)
+  const [enrollMsg, setEnrollMsg] = useState<string | null>(null)
+  const [enrollErr, setEnrollErr] = useState<string | null>(null)
   const { lastResult, history, setResult, clearResult, setScanning } = useNFCStore()
   const timerRef = useRef<ReturnType<typeof setTimeout>>()
 
@@ -59,6 +78,19 @@ export default function NFCPage() {
   }
 
   useEffect(() => () => clearTimeout(timerRef.current), [])
+  useEffect(() => {
+    if (activeTab !== 'enroll') return
+    void loadUsers()
+  }, [activeTab])
+
+  const filteredUsers = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return users
+    return users.filter((u) =>
+      u.full_name.toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q),
+    )
+  }, [users, query])
 
   const isGranted = lastResult.result === 'granted'
   const isDenied = lastResult.result === 'denied'
@@ -76,8 +108,125 @@ export default function NFCPage() {
     fontSize: 13, outline: 'none', width: '100%', boxSizing: 'border-box' as const,
   }
 
+  const readUidFromDevice = async () => {
+    if (!('NDEFReader' in window)) {
+      throw new Error('Este dispositivo/navegador no soporta Web NFC. Usa Android + Chrome o captura manual.')
+    }
+    const reader = new NDEFReader()
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 15000)
+    try {
+      await reader.scan({ signal: controller.signal })
+      const event = await new Promise<NDEFReadingEvent>((resolve, reject) => {
+        reader.addEventListener('reading', (ev) => resolve(ev))
+        controller.signal.addEventListener('abort', () => reject(new Error('Tiempo agotado al esperar lectura NFC')))
+      })
+      const serial = event.serialNumber?.trim()
+      if (!serial) throw new Error('No se pudo leer el UID del chip')
+      return serial
+    } finally {
+      clearTimeout(timeout)
+      controller.abort()
+    }
+  }
+
+  const handleRealAccessScan = async () => {
+    if (loading || nfcBusy) return
+    setNfcBusy(true)
+    try {
+      const readUid = await readUidFromDevice()
+      setUid(readUid)
+      await scan(readUid)
+    } catch (e: any) {
+      setResult({ result: 'denied', user: null, reason: 'error', message: e?.message ?? 'No fue posible leer NFC' })
+    } finally {
+      setNfcBusy(false)
+    }
+  }
+
+  const loadUsers = async () => {
+    setUsersLoading(true)
+    setUsersError(null)
+    try {
+      const { data } = await api.get('/users')
+      setUsers(data.data ?? [])
+    } catch (e: any) {
+      setUsersError(e?.response?.data?.message ?? 'No fue posible cargar usuarios. Verifica permisos (secretaria/admin).')
+    } finally {
+      setUsersLoading(false)
+    }
+  }
+
+  const handleReadEnrollUid = async () => {
+    if (nfcBusy) return
+    setNfcBusy(true)
+    setEnrollErr(null)
+    setEnrollMsg(null)
+    try {
+      const readUid = await readUidFromDevice()
+      setEnrollUid(readUid)
+      setEnrollMsg('UID leído correctamente')
+    } catch (e: any) {
+      setEnrollErr(e?.message ?? 'No fue posible leer NFC')
+    } finally {
+      setNfcBusy(false)
+    }
+  }
+
+  const handleEnroll = async () => {
+    if (!selectedUserId || !enrollUid.trim() || enrolling) return
+    setEnrollErr(null)
+    setEnrollMsg(null)
+    setEnrolling(true)
+    try {
+      await api.post('/access/tags', {
+        uid: enrollUid.trim(),
+        user_id: selectedUserId,
+      })
+      setEnrollMsg('Chip asignado correctamente al usuario')
+      setEnrollUid('')
+    } catch (e: any) {
+      setEnrollErr(e?.response?.data?.message ?? 'No fue posible asignar el chip')
+    } finally {
+      setEnrolling(false)
+    }
+  }
+
   return (
-    <div style={{ display: 'flex', gap: 20, height: isMobile ? 'auto' : 'calc(100vh - 96px)', flexDirection: isMobile ? 'column' : 'row' }}>
+    <div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+        <button
+          onClick={() => setActiveTab('access')}
+          style={{
+            padding: '8px 12px',
+            borderRadius: 10,
+            border: `1px solid ${activeTab === 'access' ? '#00a88e' : colors.border}`,
+            background: activeTab === 'access' ? (mode === 'dark' ? '#0d3b34' : '#e6f6f3') : colors.surface,
+            color: activeTab === 'access' ? '#00a88e' : colors.text,
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          Lector de acceso
+        </button>
+        <button
+          onClick={() => setActiveTab('enroll')}
+          style={{
+            padding: '8px 12px',
+            borderRadius: 10,
+            border: `1px solid ${activeTab === 'enroll' ? '#00a88e' : colors.border}`,
+            background: activeTab === 'enroll' ? (mode === 'dark' ? '#0d3b34' : '#e6f6f3') : colors.surface,
+            color: activeTab === 'enroll' ? '#00a88e' : colors.text,
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          Enrolamiento de chip
+        </button>
+      </div>
+
+      {activeTab === 'access' && (
+        <div style={{ display: 'flex', gap: 20, minHeight: isMobile ? 'auto' : 'calc(100dvh - 160px)', flexDirection: isMobile ? 'column' : 'row' }}>
 
       {/* Panel principal de resultado */}
       <div style={{
@@ -243,6 +392,19 @@ export default function NFCPage() {
             <label style={{ fontSize: 11, color: colors.muted, display: 'block', marginBottom: 5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
               UID Manual
             </label>
+            <button
+              onClick={handleRealAccessScan}
+              disabled={loading || nfcBusy}
+              style={{
+                width: '100%', marginBottom: 8, padding: '8px 12px',
+                background: '#00a88e', border: 'none', borderRadius: 8,
+                color: '#fff', fontSize: 13, fontWeight: 700,
+                cursor: loading || nfcBusy ? 'not-allowed' : 'pointer',
+                opacity: loading || nfcBusy ? 0.7 : 1,
+              }}
+            >
+              {nfcBusy ? 'Esperando lectura NFC...' : 'Leer chip con NFC del celular'}
+            </button>
             <div style={{ display: 'flex', gap: 8, flexDirection: isMobile ? 'column' : 'row' }}>
               <input
                 value={uid}
@@ -315,6 +477,91 @@ export default function NFCPage() {
           </div>
         </div>
       </div>
+        </div>
+      )}
+
+      {activeTab === 'enroll' && (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1.1fr) minmax(0, 1fr)',
+          gap: 16,
+        }}>
+          <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 16, padding: 16 }}>
+            <h3 style={{ margin: 0, marginBottom: 10, color: colors.text, fontSize: 15 }}>1) Selecciona usuario</h3>
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Buscar por nombre o correo"
+              style={{ ...inputStyle, marginBottom: 10 }}
+            />
+            {usersLoading && <div style={{ color: colors.muted, fontSize: 12 }}>Cargando usuarios...</div>}
+            {usersError && <div style={{ color: '#ef4444', fontSize: 12 }}>{usersError}</div>}
+            {!usersLoading && !usersError && (
+              <div style={{ maxHeight: isMobile ? 220 : 360, overflowY: 'auto', border: `1px solid ${colors.border}`, borderRadius: 10 }}>
+                {filteredUsers.map((u) => {
+                  const selected = selectedUserId === u.id
+                  return (
+                    <button
+                      key={u.id}
+                      onClick={() => setSelectedUserId(u.id)}
+                      style={{
+                        width: '100%', textAlign: 'left', padding: '10px 12px',
+                        border: 'none', borderBottom: `1px solid ${colors.border}`,
+                        background: selected ? (mode === 'dark' ? '#0d3b34' : '#e6f6f3') : 'transparent',
+                        color: selected ? '#00a88e' : colors.text,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <div style={{ fontSize: 13, fontWeight: 700 }}>{u.full_name}</div>
+                      <div style={{ fontSize: 11, color: colors.muted }}>{u.email}</div>
+                    </button>
+                  )
+                })}
+                {filteredUsers.length === 0 && <div style={{ padding: 12, fontSize: 12, color: colors.muted }}>Sin usuarios</div>}
+              </div>
+            )}
+          </div>
+
+          <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 16, padding: 16 }}>
+            <h3 style={{ margin: 0, marginBottom: 10, color: colors.text, fontSize: 15 }}>2) Leer y asignar chip</h3>
+            <button
+              onClick={handleReadEnrollUid}
+              disabled={nfcBusy}
+              style={{
+                width: '100%', marginBottom: 10, padding: '9px 12px',
+                background: '#00a88e', border: 'none', borderRadius: 8,
+                color: '#fff', fontSize: 13, fontWeight: 700,
+                cursor: nfcBusy ? 'not-allowed' : 'pointer', opacity: nfcBusy ? 0.7 : 1,
+              }}
+            >
+              {nfcBusy ? 'Esperando lectura NFC...' : 'Leer UID desde NFC del celular'}
+            </button>
+            <label style={{ fontSize: 11, color: colors.muted, display: 'block', marginBottom: 5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              UID del chip
+            </label>
+            <input
+              value={enrollUid}
+              onChange={(e) => setEnrollUid(e.target.value)}
+              placeholder="UID leído o capturado manual"
+              style={{ ...inputStyle, marginBottom: 10 }}
+            />
+            <button
+              onClick={handleEnroll}
+              disabled={!selectedUserId || !enrollUid.trim() || enrolling}
+              style={{
+                width: '100%', padding: '9px 12px', border: 'none', borderRadius: 8,
+                background: '#00a88e', color: '#fff', fontSize: 13, fontWeight: 700,
+                cursor: !selectedUserId || !enrollUid.trim() || enrolling ? 'not-allowed' : 'pointer',
+                opacity: !selectedUserId || !enrollUid.trim() || enrolling ? 0.7 : 1,
+              }}
+            >
+              {enrolling ? 'Asignando chip...' : 'Asignar chip al usuario'}
+            </button>
+            {enrollMsg && <div style={{ marginTop: 10, fontSize: 12, color: '#00a88e' }}>{enrollMsg}</div>}
+            {enrollErr && <div style={{ marginTop: 10, fontSize: 12, color: '#ef4444' }}>{enrollErr}</div>}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
