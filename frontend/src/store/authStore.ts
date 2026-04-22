@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
 interface User {
   id: string
@@ -20,11 +21,19 @@ interface AuthState {
   isAuthenticated: () => boolean
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
-  accessToken: null,
-  user: null,
-  setAccessToken: (token) => set({ accessToken: token }),
-  setUser: (user) => set({ user }),
-  logout: () => set({ accessToken: null, user: null }),
-  isAuthenticated: () => !!get().accessToken,
-}))
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
+      accessToken: null,
+      user: null,
+      setAccessToken: (token) => set({ accessToken: token }),
+      setUser: (user) => set({ user }),
+      logout: () => set({ accessToken: null, user: null }),
+      isAuthenticated: () => !!get().accessToken,
+    }),
+    {
+      name: 'sigam-auth',
+      partialize: (state) => ({ accessToken: state.accessToken, user: state.user }),
+    },
+  ),
+)
