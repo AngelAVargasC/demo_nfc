@@ -51,6 +51,11 @@ app.include_router(finance_router)
 app.include_router(documents_router)
 
 
+@app.get("/")
+async def root():
+    return {"success": True, "data": {"status": "ok", "service": "SIGAM API"}, "error": None}
+
+
 @app.get("/api/v1/health")
 async def health():
     return {"success": True, "data": {"status": "ok"}, "error": None}
