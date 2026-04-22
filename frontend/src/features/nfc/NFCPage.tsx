@@ -54,20 +54,19 @@ export default function NFCPage() {
   const timerRef = useRef<ReturnType<typeof setTimeout>>()
   const chamberRef = useRef<string>('')
   const loadingRef = useRef(false)
+  const pendingUidRef = useRef<string | null>(null)
   useEffect(() => { chamberRef.current = chamber }, [chamber])
   useEffect(() => { loadingRef.current = loading }, [loading])
 
-  const nfc = useNFCReader({ cooldownMs: 1800 })
+  const nfc = useNFCReader({ cooldownMs: 900 })
   useWakeLock(nfc.active)
 
-  const scan = useCallback(async (scanUid: string) => {
-    const normalized = normalizeUid(scanUid) || scanUid.trim()
-    if (!normalized || loadingRef.current) return
+  const processUid = useCallback(async (normalized: string) => {
     loadingRef.current = true
     setLoading(true)
     setScanning(true)
     clearResult()
-    feedbackRead()
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = undefined }
 
     try {
       const { data } = await api.post('/access/scan', {
@@ -92,9 +91,26 @@ export default function NFCPage() {
       setScanning(false)
     }
 
-    clearTimeout(timerRef.current)
-    timerRef.current = setTimeout(clearResult, 10000)
+    if (timerRef.current) clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(() => { clearResult() }, 8000)
+
+    const queued = pendingUidRef.current
+    if (queued) {
+      pendingUidRef.current = null
+      void processUid(queued)
+    }
   }, [clearResult, setResult, setScanning])
+
+  const scan = useCallback((scanUid: string) => {
+    const normalized = normalizeUid(scanUid) || scanUid.trim()
+    if (!normalized) return
+    feedbackRead()
+    if (loadingRef.current) {
+      pendingUidRef.current = normalized
+      return
+    }
+    void processUid(normalized)
+  }, [processUid])
 
   useEffect(() => () => clearTimeout(timerRef.current), [])
   useEffect(() => {
