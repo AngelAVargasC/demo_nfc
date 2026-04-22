@@ -1,6 +1,7 @@
 from pydantic_settings import BaseSettings
 from pydantic import field_validator
 from typing import List
+import json
 
 
 class Settings(BaseSettings):
@@ -19,11 +20,25 @@ class Settings(BaseSettings):
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def parse_cors_origins(cls, value):
+        if isinstance(value, list):
+            return value
         if isinstance(value, str):
             stripped = value.strip()
+            # Remove accidental wrapping quotes from platform env UIs.
+            if (stripped.startswith('"') and stripped.endswith('"')) or (stripped.startswith("'") and stripped.endswith("'")):
+                stripped = stripped[1:-1].strip()
+
+            # Try JSON array first, e.g. ["https://a.com","https://b.com"]
             if stripped.startswith("["):
-                return value
-            return [origin.strip() for origin in stripped.split(",") if origin.strip()]
+                try:
+                    parsed = json.loads(stripped)
+                    if isinstance(parsed, list):
+                        return [str(item).strip().strip('"').strip("'") for item in parsed if str(item).strip()]
+                except Exception:
+                    pass
+
+            # Fallback to comma-separated URLs.
+            return [origin.strip().strip('"').strip("'") for origin in stripped.split(",") if origin.strip()]
         return value
 
     class Config:
