@@ -30,18 +30,24 @@ const GROUP_LABEL: Record<string, string> = {
   inteligencia: 'Analítica',
 }
 
-/* ─── Sidebar inner ──────────────────────────────────────────────── */
+const SIDEBAR_W_DESKTOP = 256
+const SIDEBAR_W_TABLET = 232
+const SIDEBAR_W_MOBILE = 284
+const TOPBAR_H_DESKTOP = 60
+const TOPBAR_H_MOBILE = 56
+
+/* ─── Sidebar inner (shared for desktop aside and mobile drawer) ── */
 function SidebarInner({
   colors, mode, user, now, location, groupedNav, toggleMode, handleLogout, onNavClick,
 }: any) {
   return (
     <div style={{
       display: 'flex', flexDirection: 'column',
-      height: '100%', overflow: 'hidden',
+      height: '100%', minHeight: 0, width: '100%',
+      background: colors.surface, color: colors.text,
     }}>
-      {/* Logo / brand */}
       <div style={{
-        padding: '18px 18px 14px',
+        padding: '16px 16px 12px',
         borderBottom: `1px solid ${colors.border}`,
         display: 'flex', alignItems: 'center', gap: 12,
         flexShrink: 0,
@@ -61,10 +67,14 @@ function SidebarInner({
         </div>
       </div>
 
-      {/* Nav — scrollable, takes remaining height */}
-      <nav style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '14px 10px' }}>
+      <nav style={{
+        flex: 1, minHeight: 0,
+        overflowY: 'auto', overflowX: 'hidden',
+        WebkitOverflowScrolling: 'touch' as any,
+        padding: '12px 10px',
+      }}>
         {Object.entries(groupedNav).map(([group, items]: any) => (
-          <div key={group} style={{ marginBottom: 18 }}>
+          <div key={group} style={{ marginBottom: 16 }}>
             <div style={{
               fontSize: 10, letterSpacing: 0.9, textTransform: 'uppercase',
               color: colors.subtle, fontWeight: 700, padding: '0 10px 8px',
@@ -75,13 +85,11 @@ function SidebarInner({
               const active = location.pathname.startsWith(to)
               return (
                 <Link key={to} to={to} style={{ textDecoration: 'none' }} onClick={onNavClick}>
-                  <motion.div
-                    whileHover={{ x: active ? 0 : 2 }}
-                    transition={{ duration: 0.15 }}
+                  <div
                     style={{
                       position: 'relative',
                       display: 'flex', alignItems: 'center', gap: 11,
-                      padding: '9px 11px', margin: '2px 0',
+                      padding: '10px 12px', margin: '2px 0',
                       fontSize: 13.5, fontWeight: active ? 650 : 500,
                       color: active ? colors.primaryStrong : colors.text,
                       background: active ? colors.primarySoft : 'transparent',
@@ -90,18 +98,16 @@ function SidebarInner({
                     }}
                   >
                     {active && (
-                      <motion.span
-                        layoutId="nav-active"
+                      <span
                         style={{
-                          position: 'absolute', left: -10, top: 6, bottom: 6,
+                          position: 'absolute', left: -10, top: 8, bottom: 8,
                           width: 3, background: colors.primary, borderRadius: 4,
                         }}
-                        transition={{ type: 'spring', stiffness: 420, damping: 34 }}
                       />
                     )}
                     <Icon size={16} strokeWidth={active ? 2.25 : 1.9} />
                     {label}
-                  </motion.div>
+                  </div>
                 </Link>
               )
             })}
@@ -109,13 +115,12 @@ function SidebarInner({
         ))}
       </nav>
 
-      {/* Footer — always visible, never pushed out */}
       <div style={{
         padding: '10px 12px 14px',
         borderTop: `1px solid ${colors.border}`,
         flexShrink: 0,
+        background: colors.surface,
       }}>
-        {/* System status */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 8,
           padding: '7px 10px', borderRadius: radius.md,
@@ -129,26 +134,21 @@ function SidebarInner({
           </span>
         </div>
 
-        {/* Theme toggle */}
         <button
           onClick={toggleMode}
           style={{
             width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-            padding: '7px 10px', marginBottom: 8,
+            padding: '8px 10px', marginBottom: 8,
             background: 'transparent', color: colors.muted,
             border: `1px solid ${colors.border}`, borderRadius: radius.md,
             cursor: 'pointer', fontSize: 12, fontWeight: 600,
-            transition: 'background 140ms ease',
           }}
-          onMouseEnter={e => (e.currentTarget.style.background = colors.surfaceHover)}
-          onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
         >
           {mode === 'light' ? <Moon size={14} /> : <Sun size={14} />}
           {mode === 'light' ? 'Modo oscuro' : 'Modo claro'}
         </button>
 
-        {/* User + logout */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 2px' }}>
           <div style={{
             width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
             background: colors.primarySoft, color: colors.primary,
@@ -173,11 +173,9 @@ function SidebarInner({
             title="Cerrar sesión"
             style={{
               background: 'transparent', border: `1px solid ${colors.border}`,
-              borderRadius: radius.sm, padding: 6, cursor: 'pointer',
+              borderRadius: radius.sm, padding: 7, cursor: 'pointer',
               color: colors.muted, display: 'flex', flexShrink: 0,
             }}
-            onMouseEnter={e => { e.currentTarget.style.color = colors.danger; e.currentTarget.style.borderColor = colors.danger }}
-            onMouseLeave={e => { e.currentTarget.style.color = colors.muted; e.currentTarget.style.borderColor = colors.border }}
           >
             <LogOut size={14} />
           </button>
@@ -216,14 +214,13 @@ export function Layout({ children }: { children: ReactNode }) {
   useEffect(() => { closeSidebar() }, [location.pathname])
   useEffect(() => { if (!isMobile) closeSidebar() }, [isMobile])
 
-  // Lock body scroll when mobile drawer is open.
+  // Lock document scroll only while drawer is open on mobile.
   useEffect(() => {
     if (isMobile && sidebarOpen) {
+      const prev = document.body.style.overflow
       document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
+      return () => { document.body.style.overflow = prev }
     }
-    return () => { document.body.style.overflow = '' }
   }, [isMobile, sidebarOpen])
 
   const handleLogout = async () => {
@@ -240,21 +237,20 @@ export function Layout({ children }: { children: ReactNode }) {
 
   const sidebarProps = { colors, mode, user, now, location, groupedNav, toggleMode, handleLogout, onNavClick: closeSidebar }
 
-  return (
-    /* Root: full viewport, no overflow */
-    <div style={{
-      display: 'flex', width: '100vw', height: '100vh',
-      overflow: 'hidden', background: colors.appBg, color: colors.text,
-    }}>
+  const sidebarWidth = isTablet ? SIDEBAR_W_TABLET : SIDEBAR_W_DESKTOP
+  const topbarHeight = isMobile ? TOPBAR_H_MOBILE : TOPBAR_H_DESKTOP
 
-      {/* ── Desktop / Tablet sidebar ── */}
+  return (
+    <div style={{ background: colors.appBg, color: colors.text, minHeight: '100dvh' }}>
+
+      {/* ── Desktop / tablet fixed sidebar ── */}
       {!isMobile && (
         <aside style={{
-          width: isTablet ? 232 : 256,
-          height: '100vh',
-          flexShrink: 0,
-          background: colors.surface,
+          position: 'fixed', top: 0, left: 0,
+          width: sidebarWidth,
+          height: '100dvh',
           borderRight: `1px solid ${colors.border}`,
+          zIndex: 30,
           overflow: 'hidden',
         }}>
           <SidebarInner {...sidebarProps} />
@@ -266,164 +262,138 @@ export function Layout({ children }: { children: ReactNode }) {
         <AnimatePresence>
           {sidebarOpen && (
             <>
-              {/* Backdrop */}
               <motion.div
                 key="backdrop"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.18 }}
-                onPointerDown={closeSidebar}
+                onClick={closeSidebar}
                 style={{
-                  position: 'fixed', inset: 0, zIndex: 39,
-                  background: 'rgba(0,0,0,0.5)',
-                  touchAction: 'none',
+                  position: 'fixed', inset: 0, zIndex: 49,
+                  background: 'rgba(0,0,0,0.55)',
                 }}
               />
-              {/* Drawer panel */}
               <motion.aside
                 key="drawer"
                 initial={{ x: '-100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '-100%' }}
-                transition={{ duration: 0.2, ease: [0.2, 0.7, 0.2, 1] }}
+                transition={{ duration: 0.22, ease: [0.2, 0.7, 0.2, 1] }}
                 style={{
                   position: 'fixed', top: 0, left: 0,
-                  width: 280, height: '100vh',
-                  zIndex: 40,
-                  background: colors.surface,
+                  width: SIDEBAR_W_MOBILE, maxWidth: '86vw',
+                  height: '100dvh',
+                  zIndex: 50,
                   borderRight: `1px solid ${colors.border}`,
                   display: 'flex', flexDirection: 'column',
                   overflow: 'hidden',
                 }}
               >
-                {/* Close button row */}
                 <div style={{
-                  display: 'flex', justifyContent: 'flex-end',
-                  padding: '10px 10px 0', flexShrink: 0,
+                  position: 'absolute', top: 8, right: 8, zIndex: 2,
                 }}>
-                  <button onPointerDown={closeSidebar} style={iconBtn(colors)}>
+                  <button onClick={closeSidebar} style={iconBtn(colors)}>
                     <X size={15} />
                   </button>
                 </div>
-                {/* Sidebar content fills remaining space */}
-                <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
-                  <SidebarInner {...sidebarProps} />
-                </div>
+                <SidebarInner {...sidebarProps} />
               </motion.aside>
             </>
           )}
         </AnimatePresence>
       )}
 
-      {/* ── Main content ── */}
-      <main style={{
-        flex: 1, minWidth: 0,
-        display: 'flex', flexDirection: 'column',
-        height: '100vh', overflow: 'hidden',
+      {/* ── Topbar (fixed) ── */}
+      <header style={{
+        position: 'fixed', top: 0,
+        left: isMobile ? 0 : sidebarWidth,
+        right: 0,
+        height: topbarHeight,
+        background: colors.appBg,
+        borderBottom: `1px solid ${colors.border}`,
+        display: 'flex', alignItems: 'center', gap: 12,
+        padding: isMobile ? '0 12px' : isTablet ? '0 18px' : '0 28px',
+        zIndex: 20,
       }}>
-        {/* Topbar */}
-        <header style={{
-          flexShrink: 0,
-          height: isMobile ? 56 : 60,
-          background: `${colors.appBg}e8`,
-          backdropFilter: 'saturate(140%) blur(10px)',
-          WebkitBackdropFilter: 'saturate(140%) blur(10px)',
-          borderBottom: `1px solid ${colors.border}`,
-          display: 'flex', alignItems: 'center', gap: 12,
-          padding: isMobile ? '0 12px' : isTablet ? '0 18px' : '0 28px',
-          zIndex: 20,
-        }}>
-          {isMobile && (
-            <button
-              onPointerDown={openSidebar}
-              style={{
-                ...iconBtn(colors),
-                opacity: sidebarOpen ? 0 : 1,
-                pointerEvents: sidebarOpen ? 'none' : 'auto',
-                transition: 'opacity 120ms ease',
-                flexShrink: 0,
-              }}
-            >
-              <Menu size={16} />
-            </button>
-          )}
+        {isMobile && (
+          <button onClick={openSidebar} style={{ ...iconBtn(colors), flexShrink: 0 }}>
+            <Menu size={16} />
+          </button>
+        )}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: colors.muted, minWidth: 0 }}>
-            <ShieldCheck size={14} color={colors.primary} style={{ flexShrink: 0 }} />
-            <span style={{ fontWeight: 600, color: colors.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {currentPage?.label ?? 'Panel'}
-            </span>
-            {!isMobile && (
-              <>
-                <ChevronDown size={12} style={{ opacity: 0.5 }} />
-                <span style={{ whiteSpace: 'nowrap' }}>Chilam Balam N°3</span>
-              </>
-            )}
-          </div>
-
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: colors.muted, minWidth: 0 }}>
+          <ShieldCheck size={14} color={colors.primary} style={{ flexShrink: 0 }} />
+          <span style={{ fontWeight: 600, color: colors.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {currentPage?.label ?? 'Panel'}
+          </span>
           {!isMobile && (
-            <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-              <button
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '7px 14px', width: '100%', maxWidth: isTablet ? 280 : 420,
-                  background: colors.surfaceAlt, border: `1px solid ${colors.border}`,
-                  borderRadius: radius.md, color: colors.muted, fontSize: 13,
-                  cursor: 'pointer', transition: 'border-color 140ms ease, background 140ms ease',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = colors.borderStrong }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = colors.border }}
-              >
-                <Search size={14} />
-                <span style={{ flex: 1, textAlign: 'left' }}>Buscar miembros, pagos, documentos…</span>
-                <span style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 3,
-                  fontSize: 10.5, padding: '2px 6px',
-                  background: colors.surface, border: `1px solid ${colors.border}`,
-                  borderRadius: 5, color: colors.subtle, fontWeight: 600,
-                }}>
-                  <Command size={10} /> K
-                </span>
-              </button>
-            </div>
+            <>
+              <ChevronDown size={12} style={{ opacity: 0.5 }} />
+              <span style={{ whiteSpace: 'nowrap' }}>Chilam Balam N°3</span>
+            </>
           )}
-
-          {/* Right actions */}
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-            <button title="Notificaciones" style={iconBtn(colors)}>
-              <Bell size={15} />
-              <span style={{
-                position: 'absolute', top: 6, right: 6, width: 7, height: 7,
-                borderRadius: '50%', background: colors.danger, border: `1.5px solid ${colors.appBg}`,
-              }} />
-            </button>
-            {!isMobile && (
-              <button title="Ajustes" style={iconBtn(colors)}>
-                <Settings size={15} />
-              </button>
-            )}
-          </div>
-        </header>
-
-        {/* Page content — only this scrolls */}
-        <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden' }}>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2, ease: [0.2, 0.7, 0.2, 1] }}
-              style={{
-                padding: isMobile ? '14px 14px 32px' : isTablet ? '18px 18px 32px' : '28px 28px 44px',
-                minHeight: '100%',
-              }}
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
         </div>
+
+        {!isMobile && (
+          <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+            <button style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              padding: '7px 14px', width: '100%', maxWidth: isTablet ? 280 : 420,
+              background: colors.surfaceAlt, border: `1px solid ${colors.border}`,
+              borderRadius: radius.md, color: colors.muted, fontSize: 13,
+              cursor: 'pointer',
+            }}>
+              <Search size={14} />
+              <span style={{ flex: 1, textAlign: 'left' }}>Buscar miembros, pagos, documentos…</span>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 3,
+                fontSize: 10.5, padding: '2px 6px',
+                background: colors.surface, border: `1px solid ${colors.border}`,
+                borderRadius: 5, color: colors.subtle, fontWeight: 600,
+              }}>
+                <Command size={10} /> K
+              </span>
+            </button>
+          </div>
+        )}
+
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          <button title="Notificaciones" style={iconBtn(colors)}>
+            <Bell size={15} />
+            <span style={{
+              position: 'absolute', top: 6, right: 6, width: 7, height: 7,
+              borderRadius: '50%', background: colors.danger, border: `1.5px solid ${colors.appBg}`,
+            }} />
+          </button>
+          {!isMobile && (
+            <button title="Ajustes" style={iconBtn(colors)}>
+              <Settings size={15} />
+            </button>
+          )}
+        </div>
+      </header>
+
+      {/* ── Page content (normal document scroll) ── */}
+      <main style={{
+        marginLeft: isMobile ? 0 : sidebarWidth,
+        paddingTop: topbarHeight,
+        minHeight: '100dvh',
+      }}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: [0.2, 0.7, 0.2, 1] }}
+            style={{
+              padding: isMobile ? '14px 14px 28px' : isTablet ? '18px 18px 32px' : '28px 28px 44px',
+            }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </main>
     </div>
   )
@@ -436,6 +406,5 @@ function iconBtn(colors: any) {
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     background: 'transparent', border: `1px solid ${colors.border}`,
     borderRadius: 8, color: colors.muted, cursor: 'pointer',
-    transition: 'color 140ms ease, background 140ms ease, border-color 140ms ease',
   }
 }
