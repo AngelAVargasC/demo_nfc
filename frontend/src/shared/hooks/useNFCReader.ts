@@ -12,7 +12,7 @@ interface UseNFCReaderReturn {
   active: boolean
   error: string | null
   isSupported: boolean
-  start: (onRead: ReadCallback) => Promise<boolean>
+  start: (onRead: ReadCallback, onDetect?: () => void) => Promise<boolean>
   stop: () => void
   setCallback: (onRead: ReadCallback | null) => void
   checkPermission: () => Promise<'granted' | 'prompt' | 'denied' | 'unknown'>
@@ -20,6 +20,7 @@ interface UseNFCReaderReturn {
 
 export function useNFCReader(options: { cooldownMs?: number; autoKeepAlive?: boolean } = {}): UseNFCReaderReturn {
   const { cooldownMs = 1500, autoKeepAlive = true } = options
+  const detectListenerRef = useRef<(() => void) | null>(null)
   const readerRef = useRef<NDEFReader | null>(null)
   const controllerRef = useRef<AbortController | null>(null)
   const listenerRef = useRef<ReadCallback | null>(null)
@@ -46,6 +47,7 @@ export function useNFCReader(options: { cooldownMs?: number; autoKeepAlive?: boo
       restartTimeoutRef.current = null
     }
     listenerRef.current = null
+    detectListenerRef.current = null
     lastReadRef.current = null
     cleanupReader()
   }, [cleanupReader])
@@ -68,6 +70,7 @@ export function useNFCReader(options: { cooldownMs?: number; autoKeepAlive?: boo
       const controller = new AbortController()
 
       reader.addEventListener('reading', (ev: NDEFReadingEvent) => {
+        detectListenerRef.current?.()
         const raw = ev.serialNumber?.trim()
         if (!raw) return
         const uid = normalizeUid(raw)
@@ -108,8 +111,9 @@ export function useNFCReader(options: { cooldownMs?: number; autoKeepAlive?: boo
     }, delayMs)
   }, [autoKeepAlive, internalStart])
 
-  const start = useCallback(async (onRead: ReadCallback) => {
+  const start = useCallback(async (onRead: ReadCallback, onDetect?: () => void) => {
     listenerRef.current = onRead
+    detectListenerRef.current = onDetect ?? null
     desiredActiveRef.current = true
     const ok = await internalStart()
     if (!ok && autoKeepAlive) scheduleRestart(2000)

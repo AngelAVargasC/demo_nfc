@@ -50,6 +50,8 @@ export default function NFCPage() {
   const [enrolling, setEnrolling] = useState(false)
   const [enrollMsg, setEnrollMsg] = useState<string | null>(null)
   const [enrollErr, setEnrollErr] = useState<string | null>(null)
+  const [detectFlash, setDetectFlash] = useState(0)
+  const flashTimerRef = useRef<ReturnType<typeof setTimeout>>()
   const { lastResult, history, setResult, clearResult, setScanning } = useNFCStore()
   const timerRef = useRef<ReturnType<typeof setTimeout>>()
   const chamberRef = useRef<string>('')
@@ -91,26 +93,31 @@ export default function NFCPage() {
       setScanning(false)
     }
 
-    if (timerRef.current) clearTimeout(timerRef.current)
-    timerRef.current = setTimeout(() => { clearResult() }, 8000)
-
     const queued = pendingUidRef.current
     if (queued) {
       pendingUidRef.current = null
       void processUid(queued)
+      return
     }
+
+    if (timerRef.current) clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(() => { clearResult() }, 3500)
   }, [clearResult, setResult, setScanning])
 
   const scan = useCallback((scanUid: string) => {
     const normalized = normalizeUid(scanUid) || scanUid.trim()
     if (!normalized) return
-    feedbackRead()
+    setUid(normalized)
     if (loadingRef.current) {
       pendingUidRef.current = normalized
       return
     }
+    clearResult()
+    setScanning(true)
+    setLoading(true)
+    loadingRef.current = true
     void processUid(normalized)
-  }, [processUid])
+  }, [clearResult, processUid, setScanning])
 
   useEffect(() => () => clearTimeout(timerRef.current), [])
   useEffect(() => {
@@ -143,6 +150,13 @@ export default function NFCPage() {
     fontSize: 13, outline: 'none', width: '100%', boxSizing: 'border-box' as const,
   }
 
+  const onChipDetect = useCallback(() => {
+    feedbackRead()
+    setDetectFlash((n) => n + 1)
+    if (flashTimerRef.current) clearTimeout(flashTimerRef.current)
+    flashTimerRef.current = setTimeout(() => setDetectFlash((n) => Math.max(0, n - 1)), 350)
+  }, [])
+
   const toggleAccessReader = async () => {
     if (nfc.active) {
       nfc.stop()
@@ -153,7 +167,7 @@ export default function NFCPage() {
     const ok = await nfc.start((readUid) => {
       setUid(readUid)
       void scan(readUid)
-    })
+    }, onChipDetect)
     if (ok) { try { localStorage.setItem(AUTO_RESUME_KEY, 'active') } catch {} }
   }
 
@@ -169,10 +183,12 @@ export default function NFCPage() {
       await nfc.start((readUid) => {
         setUid(readUid)
         void scan(readUid)
-      })
+      }, onChipDetect)
     }
     void tryAutoStart()
-  }, [activeTab, nfc.isSupported, nfc.checkPermission, nfc.start, scan])
+  }, [activeTab, nfc.isSupported, nfc.checkPermission, nfc.start, scan, onChipDetect])
+
+  useEffect(() => () => { if (flashTimerRef.current) clearTimeout(flashTimerRef.current) }, [])
 
   const loadUsers = async () => {
     setUsersLoading(true)
@@ -265,6 +281,14 @@ export default function NFCPage() {
         alignItems: 'center', justifyContent: 'center',
         transition: 'all 350ms ease', position: 'relative', overflow: 'hidden', minHeight: isMobile ? 420 : 0,
       }}>
+        {detectFlash > 0 && (
+          <div key={detectFlash} style={{
+            position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 5,
+            background: 'radial-gradient(circle at center, rgba(0,168,142,0.45), rgba(0,168,142,0) 70%)',
+            animation: 'nfcFlashAnim 380ms ease-out forwards',
+          }} />
+        )}
+        <style>{`@keyframes nfcFlashAnim {0%{opacity:0;transform:scale(0.6)}30%{opacity:1}100%{opacity:0;transform:scale(1.3)}}`}</style>
         <AnimatePresence mode="wait">
 
           {/* Estado idle */}

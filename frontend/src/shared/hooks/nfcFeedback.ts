@@ -39,8 +39,8 @@ function vibrate(pattern: number | number[]) {
 }
 
 export function feedbackRead() {
-  vibrate(25)
-  beep(1200, 50, 0, 0.18)
+  vibrate(55)
+  beep(1400, 70, 0, 0.28)
 }
 
 export function feedbackGranted() {
