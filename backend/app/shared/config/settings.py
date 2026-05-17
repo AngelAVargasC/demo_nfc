@@ -1,6 +1,6 @@
 from pydantic_settings import BaseSettings, NoDecode
 from pydantic import field_validator
-from typing import Annotated, List
+from typing import Annotated, Any, List
 from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
 import json
 
@@ -112,6 +112,16 @@ class Settings(BaseSettings):
         if sslmode:
             return None if sslmode == "disable" else sslmode
         return "require" if self.POSTGRES_SSL else None
+
+    def model_post_init(self, __context: Any) -> None:
+        # Falla rápido y con un mensaje claro si en producción no hay PostgreSQL
+        # configurado (evita caer en silencio a SQLite y reventar después).
+        if self.ENVIRONMENT == "production" and self.is_sqlite:
+            raise RuntimeError(
+                "ENVIRONMENT=production pero no hay PostgreSQL configurado. "
+                "Define DATABASE_URL (o las variables POSTGRES_*) en el entorno "
+                "del servicio. El backend NO debe usar SQLite en producción."
+            )
 
     class Config:
         env_file = ".env"
