@@ -6,6 +6,7 @@ import { ProtectedRoute } from '@/features/auth/ProtectedRoute'
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'))
 const DashboardPage = lazy(() => import('@/features/dashboard/DashboardPage'))
 const NFCPage = lazy(() => import('@/features/nfc/NFCPage'))
+const FaceIDPage = lazy(() => import('@/features/faceid/FaceIDPage'))
 const UsersPage = lazy(() => import('@/features/users/UsersPage'))
 const FinancePage = lazy(() => import('@/features/finance/FinancePage'))
 const DocumentsPage = lazy(() => import('@/features/documents/DocumentsPage'))
@@ -27,6 +28,9 @@ export function AppRouter() {
         } />
         <Route path="/nfc" element={
           <ProtectedRoute><Layout><NFCPage /></Layout></ProtectedRoute>
+        } />
+        <Route path="/faceid" element={
+          <ProtectedRoute><Layout><FaceIDPage /></Layout></ProtectedRoute>
         } />
         <Route path="/users" element={
           <ProtectedRoute><Layout><UsersPage /></Layout></ProtectedRoute>

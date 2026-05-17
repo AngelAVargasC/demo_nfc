@@ -9,7 +9,7 @@ import { useResponsive } from '@/shared/hooks/useResponsive'
 import {
   Users, DollarSign, FileText, BarChart2,
   LogOut, Home, Moon, Sun, Radio, Search, Command,
-  Bell, ChevronDown, Settings, ShieldCheck, Menu, X,
+  Bell, ChevronDown, Settings, ShieldCheck, Menu, X, ScanFace,
 } from 'lucide-react'
 import './Layout.css'
 
@@ -18,6 +18,7 @@ type NavItem = { to: string; icon: any; label: string; group: 'principal' | 'ges
 const navItems: NavItem[] = [
   { to: '/dashboard', icon: Home,       label: 'Panel',      group: 'principal' },
   { to: '/nfc',       icon: Radio,      label: 'Acceso NFC', group: 'principal' },
+  { to: '/faceid',    icon: ScanFace,   label: 'Acceso facial', group: 'principal' },
   { to: '/users',     icon: Users,      label: 'Miembros',   group: 'gestion' },
   { to: '/finance',   icon: DollarSign, label: 'Finanzas',   group: 'gestion' },
   { to: '/documents', icon: FileText,   label: 'Documentos', group: 'gestion' },

@@ -135,11 +135,19 @@ trivial para CPU.
 - **Prueba de extremo a extremo:** requiere el servicio ML (Fase 2) desplegado y
   `FACEID_SERVICE_URL` configurado.
 
-### Fase 4 — Frontend (React)
-- Componente de captura por cámara web.
-- Detección + recorte de rostro en el navegador (modelo ligero).
-- Anti-spoofing / liveness.
-- Pantalla de enrolamiento y pantalla de acceso (puerta).
+### Fase 4 — Frontend (React) ← PANTALLAS LISTAS (2026-05-17)
+- [x] Hook `useCamera` (acceso a cámara web, captura de fotograma JPEG).
+- [x] `FaceIDPage` (`/faceid`) con dos pestañas:
+  - **Acceso facial**: captura → `POST face/identify` → panel permitido/denegado.
+  - **Enrolar rostro**: búsqueda/selección de usuario + captura → `POST face/enroll`.
+- [x] Ruta `/faceid` e ítem de menú "Acceso facial".
+- La detección de rostro la hace el servicio ML (server-side); el navegador
+  envía el fotograma completo.
+- Variable opcional del frontend: `VITE_KIOSK_API_KEY` (debe coincidir con
+  `KIOSK_API_KEY` del backend).
+- [ ] **PENDIENTE: anti-spoofing / liveness.** Hoy la captura es de un solo
+  fotograma; sin un modelo de liveness, una foto impresa o una pantalla podrían
+  pasar. Es el riesgo de seguridad principal — implementar antes de producción.
 
 ### Fase 5 — Enrolamiento masivo (OPCIONAL)
 - El enrolamiento normal es incremental (Fase 4). Este script solo aplica si ya
@@ -157,9 +165,9 @@ trivial para CPU.
 - [x] Fase 1 — Base de datos (2026-05-17)
 - [x] Fase 2 — Servicio ML (código listo; falta desplegar en Railway)
 - [x] Fase 3 — Endpoints API (2026-05-17)
-- [ ] Fase 4 — Frontend
-- [ ] Fase 5 — Enrolamiento masivo
-- [ ] Fase 6 — Calibración
+- [x] Fase 4 — Frontend (2026-05-17; pantallas listas, falta liveness)
+- [ ] Fase 5 — Enrolamiento masivo (OPCIONAL)
+- [ ] Fase 6 — Calibración (incluye implementar liveness)
 
 ---
 
