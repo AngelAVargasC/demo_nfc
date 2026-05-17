@@ -18,6 +18,7 @@ Desktop.ini
 *.pem
 *.key
 *.crt
+usersdemo.md
 
 # =========================
 # Python / backend

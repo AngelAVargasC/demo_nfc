@@ -1,0 +1,92 @@
+/* ===========================================================================
+   global.css  ·  Reset y estilos base (SIGAM)
+   ---------------------------------------------------------------------------
+   Aqui van: reset, estilos de <body>, scrollbar, keyframes compartidas.
+   Los COLORES se toman de tokens.css mediante var(--xxx).
+   Los estilos de cada vista van en su propio archivo (ej. LoginPage.css).
+   =========================================================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+}
+
+html {
+  background: var(--app-bg);
+}
+
+body {
+  background: var(--app-bg);
+  color: var(--text);
+  overscroll-behavior-y: none;
+}
+
+#root {
+  min-height: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+/* ---- Scrollbar ----------------------------------------------------------- */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(127, 127, 140, 0.25);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(127, 127, 140, 0.45);
+}
+
+/* ---- Animaciones compartidas -------------------------------------------- */
+@keyframes sigam-pulse {
+  0%   { transform: scale(1);   opacity: 0.35; }
+  80%  { transform: scale(2.2); opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes sigam-shimmer {
+  0%   { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+@keyframes sigam-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes sigam-skeleton {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+
+.sigam-row-hover {
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+/* Pantalla de carga (fallback de Suspense) */
+.app_loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: var(--text);
+  background: var(--app-bg);
+}

@@ -1,0 +1,93 @@
+/* ===========================================================================
+   tokens.css  ·  Variables globales de tema (SIGAM)
+   ---------------------------------------------------------------------------
+   ESTE es el unico archivo donde se definen colores y fondos.
+   - Para AJUSTAR el diseno: cambia los valores aqui.
+   - Para AGREGAR un tema nuevo: duplica un bloque [data-theme="..."]
+     con otros valores y actívalo poniendo ese nombre en <html data-theme="...">.
+   Nunca pongas un color fijo (#fff, etc.) en los CSS de vista: usa var(--xxx).
+   =========================================================================== */
+
+/* ---- TEMA CLARO (por defecto) -------------------------------------------- */
+:root,
+[data-theme="light"] {
+  --app-bg:          #f7f8fa;
+  --surface:         #ffffff;
+  --surface-alt:     #f3f5f8;
+  --surface-hover:   #eef1f5;
+  --border:          #e6e9ee;
+  --border-strong:   #d6dae2;
+  --border-focus:    #00a88e;
+  --text:            #0b1118;
+  --text-strong:     #030712;
+  --muted:           #5b6473;
+  --subtle:          #8a93a2;
+  --input-bg:        #ffffff;
+  --active-bg:       #e6f6f3;
+  --toast-bg:        #ffffff;
+  --primary:         #00a88e;
+  --primary-hover:   #00917a;
+  --primary-soft:    #e6f6f3;
+  --primary-strong:  #00735f;
+  --on-primary:      #ffffff;
+  --accent:          #4f46e5;
+  --accent-soft:     #edeefe;
+  --warning:         #b45309;
+  --warning-soft:    #fef3e2;
+  --danger:          #c62828;
+  --danger-soft:     #fdecec;
+  --success:         #00a88e;
+  --success-soft:    #e6f6f3;
+  --overlay:         rgba(11, 17, 24, 0.5);
+  --elev-1:          0 1px 2px rgba(10, 20, 40, 0.04);
+  --elev-2:          0 4px 16px rgba(10, 20, 40, 0.06), 0 1px 2px rgba(10, 20, 40, 0.04);
+  --focus-ring:      0 0 0 3px rgba(0, 168, 142, 0.18);
+}
+
+/* ---- TEMA OSCURO --------------------------------------------------------- */
+[data-theme="dark"] {
+  --app-bg:          #0a0d12;
+  --surface:         #11151c;
+  --surface-alt:     #161b24;
+  --surface-hover:   #1a202a;
+  --border:          #1d232d;
+  --border-strong:   #2a3140;
+  --border-focus:    #00c3a3;
+  --text:            #e7ebf1;
+  --text-strong:     #f3f5f8;
+  --muted:           #8e98a6;
+  --subtle:          #5d6675;
+  --input-bg:        #0f131a;
+  --active-bg:       rgba(0, 195, 163, 0.12);
+  --toast-bg:        #11151c;
+  --primary:         #00c3a3;
+  --primary-hover:   #00d6b3;
+  --primary-soft:    rgba(0, 195, 163, 0.12);
+  --primary-strong:  #00e3be;
+  --on-primary:      #ffffff;
+  --accent:          #818cf8;
+  --accent-soft:     rgba(129, 140, 248, 0.14);
+  --warning:         #eab308;
+  --warning-soft:    rgba(234, 179, 8, 0.12);
+  --danger:          #ef4444;
+  --danger-soft:     rgba(239, 68, 68, 0.14);
+  --success:         #00c3a3;
+  --success-soft:    rgba(0, 195, 163, 0.12);
+  --overlay:         rgba(0, 0, 0, 0.65);
+  --elev-1:          0 0 0 1px rgba(255, 255, 255, 0.02);
+  --elev-2:          0 8px 24px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --focus-ring:      0 0 0 3px rgba(0, 195, 163, 0.28);
+}
+
+/* ---- TOKENS QUE NO DEPENDEN DEL TEMA ------------------------------------- */
+:root {
+  --radius-xs:   6px;
+  --radius-sm:   8px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+  --radius-xl:   18px;
+  --radius-pill: 999px;
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}

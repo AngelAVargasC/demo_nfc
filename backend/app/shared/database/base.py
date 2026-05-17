@@ -1,13 +1,23 @@
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 from app.shared.config.settings import settings
+
 engine_kwargs = {"echo": settings.DEBUG}
-if settings.DATABASE_URL.startswith("sqlite+"):
+
+if settings.is_sqlite:
     engine_kwargs["connect_args"] = {"check_same_thread": False}
 else:
-    engine_kwargs.update({"pool_size": 10, "max_overflow": 20, "pool_pre_ping": True})
+    # Postgres productivo: pool dimensionado + reciclado para conexiones gestionadas.
+    engine_kwargs.update({
+        "pool_size": 10,
+        "max_overflow": 20,
+        "pool_pre_ping": True,
+        "pool_recycle": 1800,
+    })
+    if settings.db_ssl:
+        engine_kwargs["connect_args"] = {"ssl": settings.db_ssl}
 
-engine = create_async_engine(settings.DATABASE_URL, **engine_kwargs)
+engine = create_async_engine(settings.database_url, **engine_kwargs)
 
 AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 

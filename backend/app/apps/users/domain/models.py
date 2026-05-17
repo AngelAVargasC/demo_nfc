@@ -40,6 +40,7 @@ class User(Base):
     logia: Mapped["Logia"] = relationship("Logia", back_populates="members")
     nfc_tag: Mapped["NFCTag"] = relationship("NFCTag", back_populates="user", uselist=False)
     access_events: Mapped[list["AccessEvent"]] = relationship("AccessEvent", back_populates="user")
+    face_profiles: Mapped[list["FaceProfile"]] = relationship("FaceProfile", back_populates="user")
     payments: Mapped[list["Payment"]] = relationship("Payment", back_populates="user")
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship("RefreshToken", back_populates="user")
 

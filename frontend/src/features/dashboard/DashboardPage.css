@@ -1,0 +1,172 @@
+/* ===========================================================================
+   DashboardPage.css  ·  Vista "dashboard"
+   Convencion: dashboard_<elemento>
+   =========================================================================== */
+
+.dashboard_head { margin-bottom: 32px; }
+.dashboard_title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+}
+.dashboard_subtitle {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.dashboard_stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(170px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.dashboard_grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 12px;
+}
+
+.dashboard_panel {
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.dashboard_panel_title {
+  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.dashboard_side {
+  display: grid;
+  gap: 12px;
+}
+.dashboard_side_card {
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+/* ---- StatCard ----------------------------------------------------------- */
+.dashboard_stat {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.dashboard_stat_icon {
+  padding: 12px;
+  border-radius: 10px;
+  color: var(--sc-accent);
+  background: color-mix(in srgb, var(--sc-accent) 9%, transparent);
+}
+.dashboard_stat_value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+}
+.dashboard_stat_label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ---- Lista de eventos --------------------------------------------------- */
+.dashboard_loading,
+.dashboard_empty {
+  font-size: 14px;
+  color: var(--muted);
+}
+.dashboard_event {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.dashboard_event_main { flex: 1; }
+.dashboard_event_name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+.dashboard_event_uid {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.dashboard_event_time {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.dashboard_pill {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+}
+.dashboard_pill_granted { background: #e6f6f3; color: #00a88e; border-color: #7ed9ca; }
+.dashboard_pill_denied  { background: #fef2f2; color: #dc2626; border-color: #fca5a5; }
+[data-theme="dark"] .dashboard_pill_granted { background: #0d3b34; color: #00a88e; border-color: #00a88e; }
+[data-theme="dark"] .dashboard_pill_denied  { background: #450a0a; color: #dc2626; border-color: #ef4444; }
+
+/* ---- Tarjetas laterales ------------------------------------------------- */
+.dashboard_side_head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-weight: 700;
+  color: var(--text);
+}
+.dashboard_last_name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.dashboard_last_time {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.dashboard_last_result {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.dashboard_last_result_ok { color: #00a88e; }
+.dashboard_last_result_no { color: #dc2626; }
+
+.dashboard_reason {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 0;
+  font-size: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.dashboard_reason_name { color: var(--muted); }
+.dashboard_reason_count {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* ---- Responsive --------------------------------------------------------- */
+@media (max-width: 1100px) {
+  .dashboard_stats { grid-template-columns: repeat(2, minmax(170px, 1fr)); }
+}
+@media (max-width: 768px) {
+  .dashboard_head { margin-bottom: 18px; }
+  .dashboard_title { font-size: 20px; }
+  .dashboard_subtitle { font-size: 12px; }
+  .dashboard_stats { grid-template-columns: 1fr; }
+  .dashboard_grid { grid-template-columns: 1fr; }
+  .dashboard_panel { padding: 14px; }
+  .dashboard_side_card { padding: 14px; }
+}

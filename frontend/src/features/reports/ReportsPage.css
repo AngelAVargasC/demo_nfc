@@ -1,0 +1,133 @@
+/* ===========================================================================
+   ReportsPage.css  ·  Vista "reports"
+   Convencion: reports_<elemento>
+   Nota: las graficas (recharts) se configuran por props en JS, no por CSS.
+   =========================================================================== */
+
+.reports_head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.reports_title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+.reports_subtitle {
+  font-size: 13px;
+  color: var(--muted);
+}
+.reports_actions {
+  display: flex;
+  gap: 8px;
+}
+.reports_btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.reports_btn:hover { background: var(--surface-hover); }
+
+.reports_stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(130px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.reports_stat {
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.reports_stat_label {
+  margin-bottom: 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.reports_stat_value {
+  font-size: 21px;
+  font-weight: 800;
+  color: var(--rep-accent);
+}
+
+.reports_grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.reports_panel {
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.reports_panel_full {
+  grid-column: 1 / -1;
+}
+.reports_panel_title {
+  margin-bottom: 20px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.reports_panel_title_tight {
+  margin-bottom: 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.reports_metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.reports_metric {
+  padding: 16px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.reports_metric_value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+.reports_metric_label {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.reports_metric_change {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #00a88e;
+}
+
+/* ---- Responsive --------------------------------------------------------- */
+@media (max-width: 1100px) {
+  .reports_stats { grid-template-columns: repeat(2, minmax(130px, 1fr)); }
+  .reports_metrics { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .reports_head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .reports_title { font-size: 20px; }
+  .reports_stats { grid-template-columns: 1fr; }
+  .reports_grid { grid-template-columns: 1fr; }
+  .reports_metrics { grid-template-columns: 1fr; }
+  .reports_panel { padding: 14px; }
+}

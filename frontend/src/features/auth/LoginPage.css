@@ -1,0 +1,243 @@
+/* ===========================================================================
+   LoginPage.css  ·  Vista "login"
+   ---------------------------------------------------------------------------
+   Convencion de clases:  login_<elemento>[_<n>]
+   El prefijo "login_" garantiza que estos estilos no choquen con otras vistas.
+   =========================================================================== */
+
+.login_page {
+  display: flex;
+  flex-direction: row;
+  min-height: 100vh;
+  background: var(--app-bg);
+}
+
+/* ---- Panel visual (imagen lateral) -------------------------------------- */
+.login_visual {
+  position: relative;
+  width: 60%;
+  min-height: 100vh;
+  background-image: url('/images/masonsidelogin.jpg');
+  background-size: cover;
+  background-position: center;
+}
+
+.login_visual_overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.12) 100%);
+}
+
+.login_visual_fade {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 260px;
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(11, 15, 20, 0.08) 20%,
+    var(--app-bg) 100%
+  );
+}
+
+/* ---- Panel del formulario ----------------------------------------------- */
+.login_panel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40%;
+  min-height: 100vh;
+  padding: 38px 34px;
+  background: var(--app-bg);
+}
+
+.login_logo {
+  position: absolute;
+  top: 24px;
+  left: 26px;
+  width: 170px;
+  height: 62px;
+  overflow: hidden;
+}
+
+.login_logo_img {
+  display: block;
+  width: 170px;
+  height: 104px;
+  object-fit: cover;
+  transform: translateY(-22px);
+}
+
+.login_brand {
+  position: absolute;
+  top: 28px;
+  right: 32px;
+  text-align: right;
+}
+
+.login_brand_title {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text);
+}
+
+.login_brand_subtitle {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ---- Formulario --------------------------------------------------------- */
+.login_form_wrap {
+  width: 100%;
+  max-width: 470px;
+}
+
+.login_form_spacer {
+  height: 34px;
+}
+
+.login_form_header {
+  margin-bottom: 18px;
+}
+
+.login_title {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text);
+}
+
+.login_subtitle {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.login_field {
+  margin-bottom: 18px;
+}
+
+.login_field_password {
+  position: relative;
+  margin-bottom: 22px;
+}
+
+.login_label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.login_input {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  font-size: 15px;
+  color: var(--text);
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.login_input:focus {
+  border-color: var(--border-focus);
+  box-shadow: var(--focus-ring);
+}
+
+.login_input_password {
+  padding-right: 42px;
+}
+
+.login_toggle_pwd {
+  position: absolute;
+  top: 40px;
+  right: 12px;
+  display: flex;
+  padding: 0;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.login_submit {
+  width: 100%;
+  height: 48px;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--on-primary);
+  background: var(--primary);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 200ms ease;
+}
+
+.login_submit:hover {
+  background: var(--primary-hover);
+}
+
+.login_submit:disabled {
+  color: var(--primary-strong);
+  background: var(--primary-soft);
+  cursor: not-allowed;
+}
+
+/* ---- Responsive: tablet ------------------------------------------------- */
+@media (max-width: 1023px) {
+  .login_visual {
+    width: 52%;
+  }
+  .login_panel {
+    width: 48%;
+  }
+}
+
+/* ---- Responsive: movil -------------------------------------------------- */
+@media (max-width: 767px) {
+  .login_page {
+    flex-direction: column;
+  }
+  .login_visual {
+    display: none;
+  }
+  .login_panel {
+    width: 100%;
+    padding: 24px 18px;
+  }
+  .login_logo {
+    top: 16px;
+    left: 14px;
+    width: 136px;
+  }
+  .login_logo_img {
+    width: 136px;
+    height: 84px;
+  }
+  .login_brand {
+    top: 18px;
+    right: 14px;
+  }
+  .login_brand_title {
+    font-size: 27px;
+  }
+  .login_brand_subtitle {
+    font-size: 10.5px;
+  }
+  .login_form_wrap {
+    max-width: 420px;
+  }
+  .login_form_spacer {
+    height: 60px;
+  }
+}

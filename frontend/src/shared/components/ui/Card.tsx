@@ -1,7 +1,5 @@
 import { CSSProperties, ReactNode, forwardRef } from 'react'
 import { motion, HTMLMotionProps } from 'framer-motion'
-import { useTheme } from '@/shared/theme/theme'
-import { radius } from '@/shared/theme/theme'
 
 type CardProps = Omit<HTMLMotionProps<'div'>, 'ref'> & {
   padding?: number | string
@@ -13,43 +11,28 @@ type CardProps = Omit<HTMLMotionProps<'div'>, 'ref'> & {
 }
 
 export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
-  { padding = 20, interactive = false, elevated = false, accent = 'none', style, children, ...rest },
+  { padding = 20, interactive = false, elevated = false, accent = 'none', className, style, children, ...rest },
   ref,
 ) {
-  const { colors } = useTheme()
-  const accentBar =
-    accent === 'primary' ? colors.primary :
-    accent === 'danger' ? colors.danger :
-    accent === 'warning' ? colors.warning : null
+  const cls = [
+    'ui_card',
+    elevated ? 'ui_card_elevated' : '',
+    interactive ? 'ui_card_interactive' : '',
+    className || '',
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   return (
     <motion.div
       ref={ref}
+      className={cls}
       whileHover={interactive ? { y: -1 } : undefined}
       transition={{ type: 'spring', stiffness: 360, damping: 30 }}
-      style={{
-        background: colors.surface,
-        border: `1px solid ${colors.border}`,
-        borderRadius: radius.lg,
-        padding,
-        boxShadow: elevated ? colors.elev2 : colors.elev1,
-        position: 'relative',
-        overflow: 'hidden',
-        cursor: interactive ? 'pointer' : 'default',
-        transition: 'border-color 180ms ease, background 180ms ease',
-        ...style,
-      }}
+      style={{ padding, ...style }}
       {...rest}
     >
-      {accentBar && (
-        <span
-          style={{
-            position: 'absolute',
-            left: 0, top: 0, bottom: 0,
-            width: 3, background: accentBar,
-          }}
-        />
-      )}
+      {accent !== 'none' && <span className={`ui_card_bar ui_card_bar_${accent}`} />}
       {children}
     </motion.div>
   )

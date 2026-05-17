@@ -3,11 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Wifi, CheckCircle, XCircle, Clock, User, Shield } from 'lucide-react'
 import api from '@/shared/services/api'
 import { useNFCStore } from '@/store/nfcStore'
-import { useTheme } from '@/shared/theme/theme'
-import { useResponsive } from '@/shared/hooks/useResponsive'
 import { useNFCReader, normalizeUid } from '@/shared/hooks/useNFCReader'
 import { feedbackRead, feedbackGranted, feedbackDenied, primeAudioContext } from '@/shared/hooks/nfcFeedback'
 import { useWakeLock } from '@/shared/hooks/useWakeLock'
+import './NFCPage.css'
 
 const AUTO_RESUME_KEY = 'sigam_nfc_auto_resume'
 
@@ -35,8 +34,6 @@ type UserRow = {
 }
 
 export default function NFCPage() {
-  const { colors, mode } = useTheme()
-  const { isMobile, isTablet } = useResponsive()
   const [activeTab, setActiveTab] = useState<'access' | 'enroll'>('access')
   const [uid, setUid] = useState('')
   const [chamber, setChamber] = useState('')
@@ -136,19 +133,11 @@ export default function NFCPage() {
 
   const isGranted = lastResult.result === 'granted'
   const isDenied = lastResult.result === 'denied'
-  const panelBg = isGranted
-    ? (mode === 'dark' ? '#052e16' : '#e6f6f3')
+  const panelClass = isGranted
+    ? 'nfc_panel nfc_panel_granted'
     : isDenied
-      ? (mode === 'dark' ? '#450a0a' : '#fef2f2')
-      : colors.surface
-
-  const panelBorder = isGranted ? '#00a88e' : isDenied ? '#ef4444' : colors.border
-
-  const inputStyle = {
-    flex: 1, padding: '8px 12px', background: colors.inputBg,
-    border: `1px solid ${colors.border}`, borderRadius: 8, color: colors.text,
-    fontSize: 13, outline: 'none', width: '100%', boxSizing: 'border-box' as const,
-  }
+      ? 'nfc_panel nfc_panel_denied'
+      : 'nfc_panel'
 
   const onChipDetect = useCallback(() => {
     feedbackRead()
@@ -239,415 +228,284 @@ export default function NFCPage() {
   }
 
   return (
-    <div>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+    <div className="nfc">
+      <div className="nfc_tabs">
         <button
           onClick={() => setActiveTab('access')}
-          style={{
-            padding: '8px 12px',
-            borderRadius: 10,
-            border: `1px solid ${activeTab === 'access' ? '#00a88e' : colors.border}`,
-            background: activeTab === 'access' ? (mode === 'dark' ? '#0d3b34' : '#e6f6f3') : colors.surface,
-            color: activeTab === 'access' ? '#00a88e' : colors.text,
-            fontWeight: 700,
-            cursor: 'pointer',
-          }}
+          className={`nfc_tab${activeTab === 'access' ? ' nfc_tab_active' : ''}`}
         >
           Lector de acceso
         </button>
         <button
           onClick={() => setActiveTab('enroll')}
-          style={{
-            padding: '8px 12px',
-            borderRadius: 10,
-            border: `1px solid ${activeTab === 'enroll' ? '#00a88e' : colors.border}`,
-            background: activeTab === 'enroll' ? (mode === 'dark' ? '#0d3b34' : '#e6f6f3') : colors.surface,
-            color: activeTab === 'enroll' ? '#00a88e' : colors.text,
-            fontWeight: 700,
-            cursor: 'pointer',
-          }}
+          className={`nfc_tab${activeTab === 'enroll' ? ' nfc_tab_active' : ''}`}
         >
           Enrolamiento de chip
         </button>
       </div>
 
       {activeTab === 'access' && (
-        <div style={{ display: 'flex', gap: 20, minHeight: isMobile ? 'auto' : 'calc(100dvh - 160px)', flexDirection: isMobile ? 'column' : 'row' }}>
+        <div className="nfc_access">
 
-      {/* Panel principal de resultado */}
-      <div style={{
-        flex: 1, background: panelBg, border: `2px solid ${panelBorder}`,
-        borderRadius: 20, display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
-        transition: 'all 350ms ease', position: 'relative', overflow: 'hidden', minHeight: isMobile ? 420 : 0,
-      }}>
-        {detectFlash > 0 && (
-          <div key={detectFlash} style={{
-            position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 5,
-            background: 'radial-gradient(circle at center, rgba(0,168,142,0.45), rgba(0,168,142,0) 70%)',
-            animation: 'nfcFlashAnim 380ms ease-out forwards',
-          }} />
-        )}
-        <style>{`@keyframes nfcFlashAnim {0%{opacity:0;transform:scale(0.6)}30%{opacity:1}100%{opacity:0;transform:scale(1.3)}}`}</style>
-        <AnimatePresence mode="wait">
+          {/* Panel principal de resultado */}
+          <div className={panelClass}>
+            {detectFlash > 0 && <div key={detectFlash} className="nfc_flash" />}
+            <AnimatePresence mode="wait">
 
-          {/* Estado idle */}
-          {lastResult.result === null && !loading && (
-            <motion.div key="idle" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              style={{ textAlign: 'center', padding: 32 }}>
-              <motion.div animate={{ scale: [1, 1.06, 1] }} transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}>
-                <Wifi size={80} color="#00a88e" style={{ marginBottom: 20 }} />
-              </motion.div>
-              <h2 style={{ color: colors.text, fontSize: isMobile ? 20 : 24, fontWeight: 700, margin: 0 }}>
-                {nfc.active ? 'Control de accesos activo' : 'Lector en espera'}
-              </h2>
-              <p style={{ color: colors.muted, marginTop: 10, fontSize: 15 }}>
-                {nfc.active
-                  ? 'Acerque un chip al celular. Validación automática, sin tocar pantalla.'
-                  : 'Presione "Iniciar control de accesos" una sola vez para habilitarlo.'}
-              </p>
-              {nfc.active && (
-                <div style={{
-                  marginTop: 18, display: 'inline-flex', alignItems: 'center', gap: 8,
-                  padding: '6px 14px', borderRadius: 999,
-                  background: mode === 'dark' ? '#0d3b34' : '#e6f6f3',
-                  border: '1px solid #00a88e', color: '#00a88e', fontSize: 12, fontWeight: 700,
-                }}>
-                  <span style={{
-                    width: 8, height: 8, borderRadius: '50%', background: '#00a88e',
-                    animation: 'nfcPulse 1.4s infinite',
-                  }} />
-                  EN VIVO
-                </div>
-              )}
-            </motion.div>
-          )}
-
-          {/* Escaneando */}
-          {loading && (
-            <motion.div key="scanning" initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-              style={{ textAlign: 'center', padding: 32 }}>
-              <motion.div animate={{ scale: [1, 1.18, 1] }} transition={{ repeat: Infinity, duration: 0.7 }}>
-                <Wifi size={80} color="#00a88e" />
-              </motion.div>
-              <p style={{ color: '#00a88e', marginTop: 20, fontSize: 20, fontWeight: 700 }}>Validando acceso...</p>
-              <p style={{ color: colors.muted, fontSize: 13, marginTop: 6 }}>Verificando estatus financiero y masónico</p>
-            </motion.div>
-          )}
-
-          {/* Acceso PERMITIDO */}
-          {isGranted && lastResult.user && (
-            <motion.div key="granted" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-              style={{ textAlign: 'center', padding: 32, width: '100%', maxWidth: 480 }}>
-              <CheckCircle size={72} color="#00a88e" style={{ marginBottom: 12 }} />
-              <h1 style={{ color: '#00a88e', fontSize: 30, fontWeight: 800, margin: '0 0 24px' }}>ACCESO PERMITIDO</h1>
-
-              {/* Tarjeta de identidad del miembro */}
-              <div style={{
-                background: colors.surface, borderRadius: 16, padding: '24px 28px',
-                border: `1px solid #00a88e`, textAlign: 'left', boxShadow: '0 4px 24px rgba(0,168,142,0.12)',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 18 }}>
-                  <div style={{
-                    width: 72, height: 72, borderRadius: '50%', flexShrink: 0,
-                    background: mode === 'dark' ? '#0d3b34' : '#e6f6f3',
-                    border: '2px solid #00a88e',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-                  }}>
-                    {lastResult.user.photo_url
-                      ? <img src={lastResult.user.photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      : <User size={36} color="#00a88e" />}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 20, fontWeight: 800, color: colors.text, lineHeight: 1.2 }}>
-                      {lastResult.user.full_name}
+              {/* Estado idle */}
+              {lastResult.result === null && !loading && (
+                <motion.div key="idle" className="nfc_state" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                  <motion.div animate={{ scale: [1, 1.06, 1] }} transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}>
+                    <Wifi size={80} color="#00a88e" className="nfc_idle_icon" />
+                  </motion.div>
+                  <h2 className="nfc_idle_title">
+                    {nfc.active ? 'Control de accesos activo' : 'Lector en espera'}
+                  </h2>
+                  <p className="nfc_idle_text">
+                    {nfc.active
+                      ? 'Acerque un chip al celular. Validación automática, sin tocar pantalla.'
+                      : 'Presione "Iniciar control de accesos" una sola vez para habilitarlo.'}
+                  </p>
+                  {nfc.active && (
+                    <div className="nfc_live_badge">
+                      <span className="nfc_live_dot" />
+                      EN VIVO
                     </div>
-                    <div style={{ fontSize: 13, color: '#00a88e', marginTop: 3, fontWeight: 600 }}>
-                      {DEGREE_LABELS[lastResult.user.degree] ?? 'Desconocido'}
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gap: 8 }}>
-                  <InfoRow label="Logia" value={(lastResult.user as any).logia?.name ?? '—'} />
-                  <InfoRow label="Correo" value={lastResult.user.email} />
-                  <InfoRow label="Rol" value={lastResult.user.role} />
-                </div>
-
-                <div style={{
-                  marginTop: 16, display: 'inline-flex', alignItems: 'center', gap: 8,
-                  background: mode === 'dark' ? '#0d3b34' : '#e6f6f3',
-                  border: '1px solid #00a88e', borderRadius: 24, padding: '6px 18px',
-                  fontSize: 13, fontWeight: 700, color: '#00a88e',
-                }}>
-                  Al Corriente — Paz y Salvo
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Acceso DENEGADO */}
-          {isDenied && (
-            <motion.div key="denied" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-              style={{ textAlign: 'center', padding: 32, width: '100%', maxWidth: 460 }}>
-              <XCircle size={72} color="#ef4444" style={{ marginBottom: 12 }} />
-              <h1 style={{ color: '#ef4444', fontSize: 30, fontWeight: 800, margin: '0 0 16px' }}>ACCESO DENEGADO</h1>
-
-              {lastResult.user && (
-                <div style={{
-                  background: colors.surface, borderRadius: 16, padding: '20px 24px',
-                  border: '1px solid #ef4444', marginBottom: 16, textAlign: 'left',
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
-                    <div style={{
-                      width: 60, height: 60, borderRadius: '50%', flexShrink: 0,
-                      background: mode === 'dark' ? '#450a0a' : '#fef2f2',
-                      border: '2px solid #ef4444',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      <User size={28} color="#ef4444" />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 18, fontWeight: 700, color: colors.text }}>{lastResult.user.full_name}</div>
-                      <div style={{ fontSize: 13, color: colors.muted }}>{DEGREE_LABELS[lastResult.user.degree]}</div>
-                    </div>
-                  </div>
-                  <InfoRow label="Correo" value={lastResult.user.email} />
-                  <InfoRow label="Logia" value={(lastResult.user as any).logia?.name ?? '—'} />
-                </div>
+                  )}
+                </motion.div>
               )}
 
-              <div style={{
-                background: mode === 'dark' ? '#450a0a' : '#fef2f2',
-                border: '1px solid #ef4444', borderRadius: 12, padding: '12px 20px',
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-              }}>
-                <span style={{ color: '#ef4444', fontSize: 14, fontWeight: 600 }}>
-                  {lastResult.reason === 'financial_debt'
-                    ? 'Adeudo Pendiente — No está Paz y Salvo'
-                    : lastResult.reason === 'wrong_degree'
-                      ? 'Grado insuficiente para esta cámara'
-                      : lastResult.reason === 'tag_not_found'
-                        ? 'Tag NFC no registrado en el sistema'
-                        : lastResult.message || 'Acceso no autorizado'}
-                </span>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+              {/* Escaneando */}
+              {loading && (
+                <motion.div key="scanning" className="nfc_state" initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+                  <motion.div animate={{ scale: [1, 1.18, 1] }} transition={{ repeat: Infinity, duration: 0.7 }}>
+                    <Wifi size={80} color="#00a88e" />
+                  </motion.div>
+                  <p className="nfc_scan_text">Validando acceso...</p>
+                  <p className="nfc_scan_sub">Verificando estatus financiero y masónico</p>
+                </motion.div>
+              )}
 
-      {/* Panel lateral de control */}
-      <div style={{ width: isMobile ? '100%' : isTablet ? 280 : 300, display: 'flex', flexDirection: 'column', gap: 14, minHeight: 0 }}>
+              {/* Acceso PERMITIDO */}
+              {isGranted && lastResult.user && (
+                <motion.div key="granted" className="nfc_state nfc_state_wide" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+                  <CheckCircle size={72} color="#00a88e" className="nfc_result_icon" />
+                  <h1 className="nfc_result_title_ok">ACCESO PERMITIDO</h1>
 
-        {/* Control de escaneo */}
-        <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 16, padding: 18 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-            <Shield size={16} color="#00a88e" />
-            <h3 style={{ color: colors.text, fontSize: 14, fontWeight: 700, margin: 0 }}>Control de Acceso</h3>
+                  <div className="nfc_card">
+                    <div className="nfc_card_head">
+                      <div className="nfc_avatar">
+                        {lastResult.user.photo_url
+                          ? <img src={lastResult.user.photo_url} alt="" className="nfc_avatar_img" />
+                          : <User size={36} color="#00a88e" />}
+                      </div>
+                      <div>
+                        <div className="nfc_id_name">{lastResult.user.full_name}</div>
+                        <div className="nfc_id_degree">
+                          {DEGREE_LABELS[lastResult.user.degree] ?? 'Desconocido'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="nfc_info_grid">
+                      <InfoRow label="Logia" value={(lastResult.user as any).logia?.name ?? '—'} />
+                      <InfoRow label="Correo" value={lastResult.user.email} />
+                      <InfoRow label="Rol" value={lastResult.user.role} />
+                    </div>
+
+                    <div className="nfc_paz">Al Corriente — Paz y Salvo</div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Acceso DENEGADO */}
+              {isDenied && (
+                <motion.div key="denied" className="nfc_state nfc_state_wide_sm" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+                  <XCircle size={72} color="#ef4444" className="nfc_result_icon" />
+                  <h1 className="nfc_result_title_no">ACCESO DENEGADO</h1>
+
+                  {lastResult.user && (
+                    <div className="nfc_card_denied">
+                      <div className="nfc_card_head_denied">
+                        <div className="nfc_avatar_denied">
+                          <User size={28} color="#ef4444" />
+                        </div>
+                        <div>
+                          <div className="nfc_id_name_sm">{lastResult.user.full_name}</div>
+                          <div className="nfc_id_degree_muted">{DEGREE_LABELS[lastResult.user.degree]}</div>
+                        </div>
+                      </div>
+                      <InfoRow label="Correo" value={lastResult.user.email} />
+                      <InfoRow label="Logia" value={(lastResult.user as any).logia?.name ?? '—'} />
+                    </div>
+                  )}
+
+                  <div className="nfc_reason">
+                    <span className="nfc_reason_text">
+                      {lastResult.reason === 'financial_debt'
+                        ? 'Adeudo Pendiente — No está Paz y Salvo'
+                        : lastResult.reason === 'wrong_degree'
+                          ? 'Grado insuficiente para esta cámara'
+                          : lastResult.reason === 'tag_not_found'
+                            ? 'Tag NFC no registrado en el sistema'
+                            : lastResult.message || 'Acceso no autorizado'}
+                    </span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
-          <div style={{ marginBottom: 10 }}>
-            <label style={{ fontSize: 11, color: colors.muted, display: 'block', marginBottom: 5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-              Cámara activa
-            </label>
-            <select
-              value={chamber}
-              onChange={e => setChamber(e.target.value)}
-              style={{ ...inputStyle, cursor: 'pointer' }}
-            >
-              {CHAMBERS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-            </select>
-          </div>
+          {/* Panel lateral de control */}
+          <div className="nfc_side">
 
-          <div style={{ marginBottom: 10 }}>
-            <label style={{ fontSize: 11, color: colors.muted, display: 'block', marginBottom: 5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-              UID Manual
-            </label>
-            <button
-              onClick={toggleAccessReader}
-              style={{
-                width: '100%', marginBottom: 6, padding: '10px 12px',
-                background: nfc.active ? '#ef4444' : '#00a88e', border: 'none', borderRadius: 8,
-                color: '#fff', fontSize: 13, fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              }}
-            >
-              {nfc.active && (
-                <span style={{
-                  width: 8, height: 8, borderRadius: '50%', background: '#fff',
-                  boxShadow: '0 0 0 0 rgba(255,255,255,0.8)',
-                  animation: 'nfcPulse 1.2s infinite',
-                }} />
-              )}
-              {nfc.active ? 'Control de accesos ACTIVO — Pausar' : 'Iniciar control de accesos'}
-            </button>
-            <div style={{ fontSize: 11, color: nfc.active ? '#00a88e' : colors.muted, marginBottom: 8, minHeight: 16 }}>
-              {nfc.error
-                ? nfc.error
-                : nfc.active
-                  ? 'Acerca cualquier chip. Se validan automáticamente sin tocar nada.'
-                  : nfc.isSupported
-                    ? 'Toca una sola vez para habilitar el lector. Queda activo permanentemente.'
-                    : 'Web NFC no disponible en este navegador.'}
+            {/* Control de escaneo */}
+            <div className="nfc_control">
+              <div className="nfc_block_head">
+                <Shield size={16} color="#00a88e" />
+                <h3 className="nfc_h3">Control de Acceso</h3>
+              </div>
+
+              <div className="nfc_field">
+                <label className="nfc_label">Cámara activa</label>
+                <select className="nfc_select" value={chamber} onChange={e => setChamber(e.target.value)}>
+                  {CHAMBERS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                </select>
+              </div>
+
+              <div className="nfc_field">
+                <label className="nfc_label">UID Manual</label>
+                <button
+                  onClick={toggleAccessReader}
+                  className={`nfc_reader_btn${nfc.active ? ' nfc_reader_btn_active' : ''}`}
+                >
+                  {nfc.active && <span className="nfc_reader_dot" />}
+                  {nfc.active ? 'Control de accesos ACTIVO — Pausar' : 'Iniciar control de accesos'}
+                </button>
+                <div className={`nfc_reader_hint${nfc.active ? ' nfc_reader_hint_active' : ''}`}>
+                  {nfc.error
+                    ? nfc.error
+                    : nfc.active
+                      ? 'Acerca cualquier chip. Se validan automáticamente sin tocar nada.'
+                      : nfc.isSupported
+                        ? 'Toca una sola vez para habilitar el lector. Queda activo permanentemente.'
+                        : 'Web NFC no disponible en este navegador.'}
+                </div>
+                <div className="nfc_uid_row">
+                  <input
+                    className="nfc_input"
+                    value={uid}
+                    onChange={e => setUid(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && scan(uid)}
+                    placeholder="04:XX:XX:XX"
+                  />
+                  <button onClick={() => scan(uid)} disabled={loading || !uid.trim()} className="nfc_scan_btn">▶</button>
+                </div>
+              </div>
+
+              <div className="nfc_demo_label">Miembros demo</div>
+              {DEMO_TAGS.map(({ uid: tagUid, label, sub }) => (
+                <button key={tagUid} onClick={() => { setUid(tagUid); scan(tagUid) }} disabled={loading} className="nfc_demo_btn">
+                  <div className="nfc_demo_name">{label}</div>
+                  <div className="nfc_demo_sub">{sub}</div>
+                  <div className="nfc_demo_uid">{tagUid}</div>
+                </button>
+              ))}
             </div>
-            <style>{`@keyframes nfcPulse {0%{box-shadow:0 0 0 0 rgba(255,255,255,0.8)}70%{box-shadow:0 0 0 8px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}`}</style>
-            <div style={{ display: 'flex', gap: 8, flexDirection: isMobile ? 'column' : 'row' }}>
-              <input
-                value={uid}
-                onChange={e => setUid(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && scan(uid)}
-                placeholder="04:XX:XX:XX"
-                style={inputStyle}
-              />
-              <button onClick={() => scan(uid)} disabled={loading || !uid.trim()} style={{
-                padding: '8px 14px', background: loading ? '#00a88e66' : '#00a88e', border: 'none',
-                borderRadius: 8, color: '#fff', fontSize: 14, cursor: loading ? 'not-allowed' : 'pointer', flexShrink: 0,
-              }}>▶</button>
+
+            {/* Historial */}
+            <div className="nfc_history">
+              <div className="nfc_block_head">
+                <Clock size={14} />
+                <h3 className="nfc_h3">Historial de sesión</h3>
+              </div>
+              <div className="nfc_history_list">
+                {history.length === 0 && (
+                  <p className="nfc_history_empty">Sin eventos aún</p>
+                )}
+                {history.map((h, i) => (
+                  <div key={i} className="nfc_history_row">
+                    {h.result === 'granted'
+                      ? <CheckCircle size={14} color="#00a88e" style={{ flexShrink: 0, marginTop: 1 }} />
+                      : <XCircle size={14} color="#ef4444" style={{ flexShrink: 0, marginTop: 1 }} />}
+                    <div className="nfc_history_main">
+                      <div className="nfc_history_name">
+                        {h.user?.full_name ?? 'Tag desconocido'}
+                      </div>
+                      <div className="nfc_history_time">
+                        {h.timestamp ? new Date(h.timestamp).toLocaleTimeString('es-MX') : ''}
+                      </div>
+                    </div>
+                    <span className={`nfc_history_badge ${h.result === 'granted' ? 'nfc_history_badge_ok' : 'nfc_history_badge_no'}`}>
+                      {h.result === 'granted' ? 'OK' : 'NO'}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-
-          <div style={{ fontSize: 11, color: colors.muted, marginBottom: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            Miembros demo
-          </div>
-          {DEMO_TAGS.map(({ uid: tagUid, label, sub }) => (
-            <button key={tagUid} onClick={() => { setUid(tagUid); scan(tagUid) }} disabled={loading}
-              style={{
-                display: 'block', width: '100%', textAlign: 'left',
-                padding: '10px 12px', background: colors.inputBg,
-                border: `1px solid ${colors.border}`, borderRadius: 10, cursor: 'pointer',
-                marginBottom: 6, transition: 'border-color 150ms',
-              }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: colors.text }}>{label}</div>
-              <div style={{ fontSize: 10, color: colors.muted, marginTop: 2 }}>{sub}</div>
-              <div style={{ fontSize: 10, color: '#00a88e', fontFamily: 'monospace', marginTop: 2 }}>{tagUid}</div>
-            </button>
-          ))}
-        </div>
-
-        {/* Historial */}
-        <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 16, padding: 18, flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <Clock size={14} color={colors.muted} />
-            <h3 style={{ color: colors.text, fontSize: 14, fontWeight: 700, margin: 0 }}>Historial de sesión</h3>
-          </div>
-          <div style={{ overflow: 'auto', flex: 1 }}>
-            {history.length === 0 && (
-              <p style={{ color: colors.muted, fontSize: 12, textAlign: 'center', marginTop: 16 }}>Sin eventos aún</p>
-            )}
-            {history.map((h, i) => (
-              <div key={i} style={{
-                display: 'flex', alignItems: 'flex-start', gap: 8, padding: '8px 0',
-                borderBottom: `1px solid ${colors.border}`,
-              }}>
-                {h.result === 'granted'
-                  ? <CheckCircle size={14} color="#00a88e" style={{ marginTop: 1, flexShrink: 0 }} />
-                  : <XCircle size={14} color="#ef4444" style={{ marginTop: 1, flexShrink: 0 }} />}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12, color: colors.text, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {h.user?.full_name ?? 'Tag desconocido'}
-                  </div>
-                  <div style={{ fontSize: 10, color: colors.muted, marginTop: 1 }}>
-                    {h.timestamp ? new Date(h.timestamp).toLocaleTimeString('es-MX') : ''}
-                  </div>
-                </div>
-                <span style={{
-                  fontSize: 10, padding: '2px 7px', borderRadius: 10, flexShrink: 0,
-                  background: h.result === 'granted' ? (mode === 'dark' ? '#0d3b34' : '#e6f6f3') : (mode === 'dark' ? '#450a0a' : '#fef2f2'),
-                  color: h.result === 'granted' ? '#00a88e' : '#ef4444',
-                  fontWeight: 700,
-                }}>
-                  {h.result === 'granted' ? 'OK' : 'NO'}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
         </div>
       )}
 
       {activeTab === 'enroll' && (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1.1fr) minmax(0, 1fr)',
-          gap: 16,
-        }}>
-          <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 16, padding: 16 }}>
-            <h3 style={{ margin: 0, marginBottom: 10, color: colors.text, fontSize: 15 }}>1) Selecciona usuario</h3>
+        <div className="nfc_enroll">
+          <div className="nfc_enroll_card">
+            <h3 className="nfc_enroll_title">1) Selecciona usuario</h3>
             <input
+              className="nfc_input nfc_enroll_input"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Buscar por nombre o correo"
-              style={{ ...inputStyle, marginBottom: 10 }}
             />
-            {usersLoading && <div style={{ color: colors.muted, fontSize: 12 }}>Cargando usuarios...</div>}
-            {usersError && <div style={{ color: '#ef4444', fontSize: 12 }}>{usersError}</div>}
+            {usersLoading && <div className="nfc_loading">Cargando usuarios...</div>}
+            {usersError && <div className="nfc_msg_err">{usersError}</div>}
             {!usersLoading && !usersError && (
-              <div style={{ maxHeight: isMobile ? 220 : 360, overflowY: 'auto', border: `1px solid ${colors.border}`, borderRadius: 10 }}>
+              <div className="nfc_user_list">
                 {filteredUsers.map((u) => {
                   const selected = selectedUserId === u.id
                   return (
                     <button
                       key={u.id}
                       onClick={() => setSelectedUserId(u.id)}
-                      style={{
-                        width: '100%', textAlign: 'left', padding: '10px 12px',
-                        border: 'none', borderBottom: `1px solid ${colors.border}`,
-                        background: selected ? (mode === 'dark' ? '#0d3b34' : '#e6f6f3') : 'transparent',
-                        color: selected ? '#00a88e' : colors.text,
-                        cursor: 'pointer',
-                      }}
+                      className={`nfc_user_btn${selected ? ' nfc_user_btn_selected' : ''}`}
                     >
-                      <div style={{ fontSize: 13, fontWeight: 700 }}>{u.full_name}</div>
-                      <div style={{ fontSize: 11, color: colors.muted }}>{u.email}</div>
+                      <div className="nfc_user_name">{u.full_name}</div>
+                      <div className="nfc_user_mail">{u.email}</div>
                     </button>
                   )
                 })}
-                {filteredUsers.length === 0 && <div style={{ padding: 12, fontSize: 12, color: colors.muted }}>Sin usuarios</div>}
+                {filteredUsers.length === 0 && <div className="nfc_user_empty">Sin usuarios</div>}
               </div>
             )}
           </div>
 
-          <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 16, padding: 16 }}>
-            <h3 style={{ margin: 0, marginBottom: 10, color: colors.text, fontSize: 15 }}>2) Leer y asignar chip</h3>
+          <div className="nfc_enroll_card">
+            <h3 className="nfc_enroll_title">2) Leer y asignar chip</h3>
             <button
               onClick={nfc.active ? nfc.stop : handleReadEnrollUid}
-              style={{
-                width: '100%', marginBottom: 8, padding: '10px 12px',
-                background: nfc.active ? '#ef4444' : '#00a88e', border: 'none', borderRadius: 8,
-                color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-              }}
+              className={`nfc_reader_btn${nfc.active ? ' nfc_reader_btn_active' : ''}`}
             >
               {nfc.active ? 'Esperando chip... Cancelar' : 'Leer UID desde NFC del celular'}
             </button>
-            <div style={{ fontSize: 11, color: colors.muted, marginBottom: 8, minHeight: 16 }}>
+            <div className="nfc_enroll_hint">
               {nfc.error ? nfc.error : nfc.active ? 'Acerca el chip al celular.' : 'Se leerá un chip y se detendrá.'}
             </div>
-            <label style={{ fontSize: 11, color: colors.muted, display: 'block', marginBottom: 5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-              UID del chip
-            </label>
+            <label className="nfc_label">UID del chip</label>
             <input
+              className="nfc_input nfc_enroll_input"
               value={enrollUid}
               onChange={(e) => setEnrollUid(e.target.value)}
               placeholder="UID leído o capturado manual"
-              style={{ ...inputStyle, marginBottom: 10 }}
             />
             <button
               onClick={handleEnroll}
               disabled={!selectedUserId || !enrollUid.trim() || enrolling}
-              style={{
-                width: '100%', padding: '9px 12px', border: 'none', borderRadius: 8,
-                background: '#00a88e', color: '#fff', fontSize: 13, fontWeight: 700,
-                cursor: !selectedUserId || !enrollUid.trim() || enrolling ? 'not-allowed' : 'pointer',
-                opacity: !selectedUserId || !enrollUid.trim() || enrolling ? 0.7 : 1,
-              }}
+              className="nfc_enroll_btn"
             >
               {enrolling ? 'Asignando chip...' : 'Asignar chip al usuario'}
             </button>
-            {enrollMsg && <div style={{ marginTop: 10, fontSize: 12, color: '#00a88e' }}>{enrollMsg}</div>}
-            {enrollErr && <div style={{ marginTop: 10, fontSize: 12, color: '#ef4444' }}>{enrollErr}</div>}
+            {enrollMsg && <div className="nfc_msg_ok">{enrollMsg}</div>}
+            {enrollErr && <div className="nfc_msg_err">{enrollErr}</div>}
           </div>
         </div>
       )}
@@ -656,11 +514,10 @@ export default function NFCPage() {
 }
 
 function InfoRow({ label, value }: { label: string; value: string }) {
-  const { colors } = useTheme()
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: `1px solid ${colors.border}` }}>
-      <span style={{ fontSize: 12, color: colors.muted, fontWeight: 600 }}>{label}</span>
-      <span style={{ fontSize: 13, color: colors.text, fontWeight: 500 }}>{value}</span>
+    <div className="nfc_info_row">
+      <span className="nfc_info_label">{label}</span>
+      <span className="nfc_info_value">{value}</span>
     </div>
   )
 }

@@ -143,8 +143,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     localStorage.setItem('sigam_theme_mode', mode)
+    // Activa las variables de tema definidas en styles/tokens.css.
+    document.documentElement.setAttribute('data-theme', mode)
     document.documentElement.style.colorScheme = mode
-    document.documentElement.style.background = palette[mode].appBg
   }, [mode])
 
   const value = useMemo(

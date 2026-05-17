@@ -21,11 +21,15 @@ limiter = Limiter(key_func=get_remote_address)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    # SQLite (desarrollo): se crea el esquema al vuelo.
+    # Postgres (producción): el esquema lo gestiona Alembic — ejecuta
+    # `alembic upgrade head` antes de arrancar (ya incluido en el Procfile).
+    if settings.is_sqlite:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
 
-    # Demo bootstrap for SQLite/Railway ephemeral containers.
-    if settings.DATABASE_URL.startswith("sqlite+"):
+    # Carga del seed demo: siempre en SQLite, y en Postgres si RUN_SEED=true.
+    if settings.is_sqlite or settings.RUN_SEED:
         await run_seed()
 
     yield

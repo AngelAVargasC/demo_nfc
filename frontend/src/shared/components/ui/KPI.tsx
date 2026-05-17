@@ -1,8 +1,6 @@
 import { ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react'
-import { useTheme } from '@/shared/theme/theme'
-import { radius } from '@/shared/theme/theme'
 
 export function KPI({
   label,
@@ -23,59 +21,27 @@ export function KPI({
   accent?: 'primary' | 'warning' | 'danger' | 'accent'
   index?: number
 }) {
-  const { colors } = useTheme()
-  const accentColor =
-    accent === 'warning' ? colors.warning :
-    accent === 'danger' ? colors.danger :
-    accent === 'accent' ? colors.accent :
-    colors.primary
-
-  const deltaPositive = typeof delta === 'number' && delta >= 0
-  const deltaColor = delta === undefined || delta === null ? colors.muted : deltaPositive ? colors.success : colors.danger
+  const hasDelta = typeof delta === 'number'
+  const deltaPositive = hasDelta && (delta as number) >= 0
 
   return (
     <motion.div
+      className={`ui_kpi ui_kpi_${accent ?? 'primary'}`}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.05, ease: [0.2, 0.7, 0.2, 1] }}
-      style={{
-        background: colors.surface,
-        border: `1px solid ${colors.border}`,
-        borderRadius: radius.lg,
-        padding: 18,
-        position: 'relative',
-        overflow: 'hidden',
-        boxShadow: colors.elev1,
-      }}
     >
-      <span style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 2, background: accentColor, opacity: 0.9 }} />
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
-        <div style={{ fontSize: 11.5, fontWeight: 600, letterSpacing: 0.4, textTransform: 'uppercase', color: colors.muted }}>
-          {label}
-        </div>
-        {icon && (
-          <span style={{
-            width: 28, height: 28, borderRadius: 8,
-            background: colors.surfaceAlt,
-            color: accentColor,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>{icon}</span>
-        )}
+      <span className="ui_kpi_bar" />
+      <div className="ui_kpi_head">
+        <div className="ui_kpi_label">{label}</div>
+        {icon && <span className="ui_kpi_icon">{icon}</span>}
       </div>
-      <div style={{
-        fontSize: 26, fontWeight: 700, letterSpacing: -0.5, color: colors.textStrong,
-        fontVariantNumeric: 'tabular-nums', lineHeight: 1.05,
-      }}>
-        {value}
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, fontSize: 12, color: colors.muted }}>
-        {typeof delta === 'number' && (
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: 2,
-            color: deltaColor, fontWeight: 600,
-          }}>
+      <div className="ui_kpi_value">{value}</div>
+      <div className="ui_kpi_foot">
+        {hasDelta && (
+          <span className={`ui_kpi_delta ${deltaPositive ? 'ui_kpi_delta_up' : 'ui_kpi_delta_down'}`}>
             {deltaPositive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-            {Math.abs(delta).toFixed(1)}%
+            {Math.abs(delta as number).toFixed(1)}%
           </span>
         )}
         {deltaLabel && <span>{deltaLabel}</span>}

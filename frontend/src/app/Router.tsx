@@ -2,7 +2,6 @@ import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Layout } from '@/shared/components/Layout'
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute'
-import { useTheme } from '@/shared/theme/theme'
 
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'))
 const DashboardPage = lazy(() => import('@/features/dashboard/DashboardPage'))
@@ -12,14 +11,9 @@ const FinancePage = lazy(() => import('@/features/finance/FinancePage'))
 const DocumentsPage = lazy(() => import('@/features/documents/DocumentsPage'))
 const ReportsPage = lazy(() => import('@/features/reports/ReportsPage'))
 
-const Loading = () => {
-  const { colors } = useTheme()
-  return (
-  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: colors.text, background: colors.appBg }}>
-    Cargando...
-  </div>
-  )
-}
+const Loading = () => (
+  <div className="app_loading">Cargando...</div>
+)
 
 export function AppRouter() {
   return (

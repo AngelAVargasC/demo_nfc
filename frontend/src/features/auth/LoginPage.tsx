@@ -4,18 +4,15 @@ import { Eye, EyeOff } from 'lucide-react'
 import api from '@/shared/services/api'
 import { useAuthStore } from '@/store/authStore'
 import toast from 'react-hot-toast'
-import { useTheme } from '@/shared/theme/theme'
-import { useResponsive } from '@/shared/hooks/useResponsive'
+import './LoginPage.css'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('admin@sigam.mx')
-  const [password, setPassword] = useState('Admin1234!')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [showPwd, setShowPwd] = useState(false)
   const [loading, setLoading] = useState(false)
   const { setAccessToken, setUser } = useAuthStore()
   const navigate = useNavigate()
-  const { colors } = useTheme()
-  const { isMobile, isTablet } = useResponsive()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -37,113 +34,68 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh', background: colors.appBg, display: 'flex', flexDirection: isMobile ? 'column' : 'row',
-    }}>
-      {!isMobile && <div style={{
-        width: isTablet ? '52%' : '60%', minHeight: '100vh', position: 'relative',
-        backgroundImage: 'url("/images/masonsidelogin.jpg")',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}>
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(110deg, rgba(0,0,0,0.40) 0%, rgba(0,0,0,0.12) 100%)',
-        }} />
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          width: 260,
-          height: '100%',
-          background: `linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(11,15,20,0.08) 20%, ${colors.appBg} 100%)`,
-          pointerEvents: 'none',
-        }} />
-      </div>}
+    <div className="login_page">
+      <div className="login_visual">
+        <div className="login_visual_overlay" />
+        <div className="login_visual_fade" />
+      </div>
 
-      <div style={{
-        width: isMobile ? '100%' : isTablet ? '48%' : '40%', minHeight: '100vh', display: 'flex',
-        alignItems: 'center', justifyContent: 'center', padding: isMobile ? '24px 18px' : '38px 34px',
-        background: colors.appBg,
-        position: 'relative',
-      }}>
-        <div style={{ position: 'absolute', top: isMobile ? 16 : 24, left: isMobile ? 14 : 26, width: isMobile ? 136 : 170, height: 62, overflow: 'hidden' }}>
+      <div className="login_panel">
+        <div className="login_logo">
           <img
+            className="login_logo_img"
             src="/images/masonlogo-Photoroom.png"
             alt="Logo Gran Logia"
-            style={{ width: isMobile ? 136 : 170, height: isMobile ? 84 : 104, objectFit: 'cover', transform: 'translateY(-22px)', display: 'block' }}
           />
         </div>
-        <div style={{ position: 'absolute', top: isMobile ? 18 : 28, right: isMobile ? 14 : 32, textAlign: 'right' }}>
-          <h1 style={{ fontSize: isMobile ? 27 : 34, fontWeight: 800, color: colors.text, margin: 0, lineHeight: 1 }}>SIGAM</h1>
-          <p style={{ fontSize: isMobile ? 10.5 : 12, color: colors.muted, marginTop: 6, marginBottom: 0 }}>Sistema Integral de Gestión Masónica</p>
+
+        <div className="login_brand">
+          <h1 className="login_brand_title">SIGAM</h1>
+          <p className="login_brand_subtitle">Sistema Integral de Gestión Masónica</p>
         </div>
 
-        <div style={{
-          width: '100%', maxWidth: isMobile ? 420 : 470,
-        }}>
-          <div style={{ height: isMobile ? 60 : 34 }} />
+        <div className="login_form_wrap">
+          <div className="login_form_spacer" />
 
           <form onSubmit={handleLogin}>
-            <div style={{ marginBottom: 18 }}>
-              <h2 style={{ fontSize: 22, fontWeight: 800, color: colors.text, margin: 0, lineHeight: 1 }}>Sign in</h2>
-              <p style={{ fontSize: 12, color: colors.muted, marginTop: 6, marginBottom: 0 }}>
-                Use your institutional account credentials.
-              </p>
+            <div className="login_form_header">
+              <h2 className="login_title">Sign in</h2>
+              <p className="login_subtitle">Use your institutional account credentials.</p>
             </div>
-            <div style={{ marginBottom: 18 }}>
-              <label style={{ display: 'block', fontSize: 13, color: colors.text, marginBottom: 8, fontWeight: 600 }}>Correo electrónico</label>
+
+            <div className="login_field">
+              <label className="login_label">Correo electrónico</label>
               <input
-                type="email" value={email} onChange={e => setEmail(e.target.value)} required
-                style={{
-                  width: '100%', height: 46, padding: '0 14px', background: colors.inputBg,
-                  border: `1px solid ${colors.border}`, borderRadius: 10, color: colors.text,
-                  fontSize: 15, outline: 'none', boxSizing: 'border-box',
-                }}
+                className="login_input"
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
               />
             </div>
 
-            <div style={{ marginBottom: 22, position: 'relative' }}>
-              <label style={{ display: 'block', fontSize: 13, color: colors.text, marginBottom: 8, fontWeight: 600 }}>Contraseña</label>
+            <div className="login_field_password">
+              <label className="login_label">Contraseña</label>
               <input
-                type={showPwd ? 'text' : 'password'} value={password}
-                onChange={e => setPassword(e.target.value)} required
-                style={{
-                  width: '100%', height: 46, padding: '0 42px 0 14px', background: colors.inputBg,
-                  border: `1px solid ${colors.border}`, borderRadius: 10, color: colors.text,
-                  fontSize: 15, outline: 'none', boxSizing: 'border-box',
-                }}
+                className="login_input login_input_password"
+                type={showPwd ? 'text' : 'password'}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
               />
-              <button type="button" onClick={() => setShowPwd(!showPwd)} style={{
-                position: 'absolute', right: 12, top: 40, background: 'none',
-                border: 'none', color: colors.muted, cursor: 'pointer', padding: 0,
-              }}>
+              <button
+                type="button"
+                className="login_toggle_pwd"
+                onClick={() => setShowPwd(!showPwd)}
+              >
                 {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
 
-            <button type="submit" disabled={loading} style={{
-              width: '100%', height: 48, background: loading ? '#007a6866' : '#00a88e',
-              border: 'none', borderRadius: 10, color: '#fff', fontSize: 19,
-              fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer',
-              transition: 'background 200ms',
-            }}>
+            <button type="submit" className="login_submit" disabled={loading}>
               {loading ? 'Verificando...' : 'Iniciar sesión'}
             </button>
           </form>
-
-          <div style={{ marginTop: 18 }}>
-            <p style={{ fontSize: 12, color: colors.text, marginBottom: 8, fontWeight: 700 }}>Credenciales demo:</p>
-            {[
-              ['admin@sigam.mx', 'Admin1234!'],
-              ['lector@sigam.mx', 'Lec1234!'],
-            ].map(([e, p]) => (
-              <button key={e} onClick={() => { setEmail(e); setPassword(p) }}
-                style={{ display: 'block', background: 'none', border: 'none', color: '#00a88e', cursor: 'pointer', fontSize: 13, padding: '3px 0', textAlign: 'left', fontWeight: 600 }}>
-                {e}
-              </button>
-            ))}
-          </div>
         </div>
       </div>
     </div>
