@@ -22,6 +22,10 @@ class DenialReason(str, Enum):
     WRONG_DEGREE = "wrong_degree"
     TAG_NOT_FOUND = "tag_not_found"
     REPLAY_ATTACK = "replay_attack"
+    # Razones específicas del reconocimiento facial.
+    NO_FACE = "no_face"
+    FACE_NO_MATCH = "face_no_match"
+    FACE_AMBIGUOUS = "face_ambiguous"
 
 
 class NFCTag(Base):
@@ -41,7 +45,8 @@ class AccessEvent(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("users.id"), nullable=True)
-    nfc_uid: Mapped[str] = mapped_column(String(100), nullable=False)
+    # Nullable: los accesos por rostro no tienen UID NFC.
+    nfc_uid: Mapped[str | None] = mapped_column(String(100), nullable=True)
     result: Mapped[AccessResult] = mapped_column(SAEnum(AccessResult), nullable=False)
     denial_reason: Mapped[DenialReason | None] = mapped_column(SAEnum(DenialReason), nullable=True)
     ip_address: Mapped[str | None] = mapped_column(String(45))

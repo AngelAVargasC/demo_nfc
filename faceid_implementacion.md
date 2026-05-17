@@ -117,15 +117,23 @@ trivial para CPU.
   Lo hace el usuario desde el panel de Railway (Claude no tiene acceso a la
   cuenta). Ver `faceid-service/README.md`.
 
-### Fase 3 — Endpoints en el API
-- `POST /api/v1/access/face/enroll`: registra/actualiza el perfil facial de un
-  usuario (llama al servicio ML, guarda el embedding).
-  - **RBAC:** solo roles admin/secretaría pueden enrolar/gestionar rostros.
-- `POST /api/v1/access/face/identify`: recibe embedding (o imagen), busca 1:N en
-  pgvector, aplica umbral + margen, registra `AccessEvent`, devuelve decisión.
-  - **Autenticación del kiosco:** la puerta no tiene un admin con sesión; el
-    dispositivo se autentica con un **token de dispositivo** (no usuario/clave).
-    Decidir el mecanismo (API key por dispositivo) en esta fase.
+### Fase 3 — Endpoints en el API ← COMPLETADA (2026-05-17)
+- [x] `POST /api/v1/access/face/enroll` (multipart: `user_id`, `file`, `replace`):
+  llama al servicio ML, guarda el embedding en `face_profiles`.
+  RBAC: `require_min_role(SECRETARIA)` — solo admin/secretaría.
+- [x] `POST /api/v1/access/face/identify` (multipart: `file`, `chamber_degree`,
+  `location`): búsqueda 1:N en pgvector, umbral + margen entre #1 y #2, valida
+  estado/grado/adeudo, registra `AccessEvent` (`method="face"`, `confidence`).
+- [x] Autenticación del kiosco: cabecera `X-Kiosk-Key` contra `KIOSK_API_KEY`
+  (clave compartida; per-dispositivo se puede mejorar a futuro).
+- [x] Cliente del servicio ML (`faceid_client.py`), `FaceProfileRepository` con
+  búsqueda vectorial, casos de uso `FaceEnrollUseCase` / `FaceAccessUseCase`.
+- [x] Migración `20260517_0100`: `access_events.nfc_uid` nullable + razones de
+  denegación `NO_FACE` / `FACE_NO_MATCH` / `FACE_AMBIGUOUS`.
+- Settings nuevos: `FACEID_SERVICE_URL`, `FACEID_API_KEY`, `KIOSK_API_KEY`,
+  `FACE_MATCH_THRESHOLD`, `FACE_MATCH_MARGIN`, `FACE_MAX_PROFILES_PER_USER`.
+- **Prueba de extremo a extremo:** requiere el servicio ML (Fase 2) desplegado y
+  `FACEID_SERVICE_URL` configurado.
 
 ### Fase 4 — Frontend (React)
 - Componente de captura por cámara web.
@@ -147,8 +155,8 @@ trivial para CPU.
 ## 6. Estado
 
 - [x] Fase 1 — Base de datos (2026-05-17)
-- [ ] Fase 2 — Servicio ML
-- [ ] Fase 3 — Endpoints API
+- [x] Fase 2 — Servicio ML (código listo; falta desplegar en Railway)
+- [x] Fase 3 — Endpoints API (2026-05-17)
 - [ ] Fase 4 — Frontend
 - [ ] Fase 5 — Enrolamiento masivo
 - [ ] Fase 6 — Calibración

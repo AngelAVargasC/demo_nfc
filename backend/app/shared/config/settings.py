@@ -37,6 +37,19 @@ class Settings(BaseSettings):
     HASH_ALGORITHM: str = "argon2"
     NFC_REPLAY_WINDOW_SECONDS: int = 30
 
+    # --- Reconocimiento facial (FaceID) --------------------------------------
+    # URL y API key del servicio ML separado (carpeta faceid-service/).
+    FACEID_SERVICE_URL: str = ""
+    FACEID_API_KEY: str = ""
+    # Clave del kiosco de la puerta para el endpoint de identificación.
+    KIOSK_API_KEY: str = ""
+    # Similitud coseno mínima para aceptar un match 1:N (calibrar con datos reales).
+    FACE_MATCH_THRESHOLD: float = 0.40
+    # Margen mínimo entre el match #1 y el #2 (evita falsos positivos en 1:N).
+    FACE_MATCH_MARGIN: float = 0.05
+    # Máximo de perfiles faciales por usuario.
+    FACE_MAX_PROFILES_PER_USER: int = 5
+
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def parse_cors_origins(cls, value):

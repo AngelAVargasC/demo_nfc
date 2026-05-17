@@ -1,14 +1,20 @@
 import uuid
 import time
 import secrets
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, UploadFile, File, Form, Header, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
 from app.shared.database.base import get_db
+from app.shared.config.settings import settings
 from app.shared.utils.response import ok, err, APIResponse
 from app.shared.security.rbac import get_current_user, require_roles, require_min_role, Role
-from app.apps.access.application.use_cases import NFCAccessUseCase, NFCManagementUseCase
-from app.apps.access.infrastructure.repository import NFCRepository, AccessEventRepository
+from app.apps.access.application.use_cases import (
+    NFCAccessUseCase, NFCManagementUseCase, FaceEnrollUseCase, FaceAccessUseCase,
+)
+from app.apps.access.infrastructure.repository import (
+    NFCRepository, AccessEventRepository, FaceProfileRepository,
+)
+from app.apps.access.infrastructure.faceid_client import FaceIdClient, FaceIdServiceError
 from app.apps.finance.infrastructure.repository import PaymentRepository
 from app.apps.users.interfaces.schemas import UserOut
 
@@ -21,6 +27,23 @@ def _access_uc(db: AsyncSession = Depends(get_db)) -> NFCAccessUseCase:
 
 def _mgmt_uc(db: AsyncSession = Depends(get_db)) -> NFCManagementUseCase:
     return NFCManagementUseCase(NFCRepository(db), AccessEventRepository(db))
+
+
+def _face_enroll_uc(db: AsyncSession = Depends(get_db)) -> FaceEnrollUseCase:
+    return FaceEnrollUseCase(FaceProfileRepository(db), FaceIdClient())
+
+
+def _face_access_uc(db: AsyncSession = Depends(get_db)) -> FaceAccessUseCase:
+    return FaceAccessUseCase(
+        FaceProfileRepository(db), AccessEventRepository(db), PaymentRepository(db), FaceIdClient(),
+    )
+
+
+def require_kiosk(x_kiosk_key: str | None = Header(default=None)) -> bool:
+    """Autentica el kiosco de la puerta (no es un usuario con sesión)."""
+    if settings.KIOSK_API_KEY and x_kiosk_key != settings.KIOSK_API_KEY:
+        raise HTTPException(status_code=401, detail="Kiosk key inválida o ausente")
+    return True
 
 
 class ScanRequest(BaseModel):
@@ -109,6 +132,57 @@ async def access_history(
             "user": UserOut.model_validate(e.user) if e.user else None,
             "ip_address": e.ip_address,
             "chamber_degree": e.chamber_degree,
+            "method": e.method,
+            "confidence": e.confidence,
         }
         for e in events
     ])
+
+
+@router.post("/face/enroll", response_model=APIResponse)
+async def face_enroll(
+    user_id: uuid.UUID = Form(...),
+    file: UploadFile = File(...),
+    replace: bool = Form(default=False),
+    current_user: dict = Depends(require_min_role(Role.SECRETARIA)),
+    uc: FaceEnrollUseCase = Depends(_face_enroll_uc),
+):
+    """Registra el perfil facial de un usuario. Solo admin/secretaría."""
+    image = await file.read()
+    try:
+        profile = await uc.enroll(user_id, image, replace=replace)
+        return ok({"id": str(profile.id), "user_id": str(profile.user_id), "source": profile.source})
+    except FaceIdServiceError as e:
+        return err(str(e))
+    except ValueError as e:
+        return err(str(e))
+
+
+@router.post("/face/identify", response_model=APIResponse)
+async def face_identify(
+    request: Request,
+    file: UploadFile = File(...),
+    chamber_degree: int | None = Form(default=None),
+    location: str | None = Form(default=None),
+    _kiosk: bool = Depends(require_kiosk),
+    uc: FaceAccessUseCase = Depends(_face_access_uc),
+):
+    """Identifica a una persona por rostro (1:N) en la puerta. Auth: X-Kiosk-Key."""
+    image = await file.read()
+    ip = request.client.host if request.client else None
+    device_info = request.headers.get("user-agent")
+    try:
+        result = await uc.identify(image, ip, device_info, location, chamber_degree)
+    except FaceIdServiceError as e:
+        return err(str(e))
+
+    user_out = UserOut.model_validate(result["user"]) if result.get("user") else None
+    if result["result"] == "granted":
+        return ok({"result": "granted", "user": user_out, "confidence": result.get("confidence")})
+    return ok({
+        "result": "denied",
+        "reason": result.get("reason"),
+        "message": result.get("message"),
+        "user": user_out,
+        "confidence": result.get("confidence"),
+    })
