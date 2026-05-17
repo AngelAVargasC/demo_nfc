@@ -118,9 +118,11 @@ export default function FaceIDPage() {
 
   const cameraView = (
     <>
-      {camera.active
-        ? <video className="faceid_video" ref={camera.videoRef} autoPlay playsInline muted />
-        : <div className="faceid_video_off">Cámara apagada</div>}
+      <div className="faceid_video_wrap">
+        {/* El <video> permanece siempre montado para poder adjuntarle el stream. */}
+        <video className="faceid_video" ref={camera.videoRef} autoPlay playsInline muted />
+        {!camera.active && <div className="faceid_video_off">Cámara apagada</div>}
+      </div>
       {camButton}
       <div className="faceid_hint">{camera.error ?? ''}</div>
     </>

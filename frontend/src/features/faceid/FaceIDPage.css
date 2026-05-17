@@ -61,25 +61,32 @@
 }
 
 /* ---- Cámara ------------------------------------------------------------- */
-.faceid_video {
+.faceid_video_wrap {
+  position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
-  object-fit: cover;
   border-radius: 12px;
+  overflow: hidden;
   background: #000;
+}
+.faceid_video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
   /* Espejo: vista natural tipo selfie. */
   transform: scaleX(-1);
 }
 .faceid_video_off {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  border-radius: 12px;
   color: var(--subtle);
   background: var(--surface-alt);
   border: 1px dashed var(--border);
+  border-radius: 12px;
   font-size: 13px;
 }
 

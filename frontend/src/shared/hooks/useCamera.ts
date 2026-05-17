@@ -25,16 +25,26 @@ export function useCamera() {
         audio: false,
       })
       streamRef.current = stream
+      setActive(true)
+      // El <video> está siempre montado: adjuntamos el stream directamente.
       if (videoRef.current) {
         videoRef.current.srcObject = stream
-        await videoRef.current.play()
+        try { await videoRef.current.play() } catch { /* play interrumpido */ }
       }
-      setActive(true)
     } catch {
       setError('No se pudo acceder a la cámara. Revisa los permisos del navegador.')
       setActive(false)
     }
   }, [])
+
+  // Red de seguridad: si el <video> aún no tenía el stream, lo adjunta.
+  useEffect(() => {
+    const video = videoRef.current
+    if (active && streamRef.current && video && !video.srcObject) {
+      video.srcObject = streamRef.current
+      video.play().catch(() => {})
+    }
+  })
 
   /** Captura el fotograma actual del video como Blob JPEG. */
   const capture = useCallback((): Promise<Blob | null> => {
