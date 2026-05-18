@@ -27,17 +27,23 @@ function loadModel(): Promise<void> {
 
 const DETECT_OPTS = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 })
 
-function evaluate(boxes: { x: number; y: number; width: number; height: number }[], vw: number, vh: number): GuideStatus {
-  if (boxes.length === 0) return 'no_face'
-  if (boxes.length > 1) return 'multiple'
+/** Resultado de cada evaluación: estado + métrica de encuadre (0-100). */
+type GuideEval = { status: GuideStatus; centering: number }
+
+function evaluate(boxes: { x: number; y: number; width: number; height: number }[], vw: number, vh: number): GuideEval {
+  if (boxes.length === 0) return { status: 'no_face', centering: 0 }
+  if (boxes.length > 1) return { status: 'multiple', centering: 0 }
   const b = boxes[0]
   const sizeFrac = b.width / vw
-  if (sizeFrac < 0.32) return 'too_far'
-  if (sizeFrac > 0.66) return 'too_close'
   const cx = (b.x + b.width / 2) / vw
   const cy = (b.y + b.height / 2) / vh
-  if (Math.hypot(cx - 0.5, cy - 0.5) > 0.16) return 'off_center'
-  return 'ok'
+  const offset = Math.hypot(cx - 0.5, cy - 0.5)
+  // 0 px de desviación -> 100; a ~0.4 del cuadro -> 0.
+  const centering = Math.max(0, Math.min(100, Math.round((1 - offset / 0.4) * 100)))
+  if (sizeFrac < 0.32) return { status: 'too_far', centering }
+  if (sizeFrac > 0.66) return { status: 'too_close', centering }
+  if (offset > 0.16) return { status: 'off_center', centering }
+  return { status: 'ok', centering }
 }
 
 /**
@@ -46,6 +52,7 @@ function evaluate(boxes: { x: number; y: number; width: number; height: number }
  */
 export function useFaceGuide(videoRef: RefObject<HTMLVideoElement | null>, enabled: boolean) {
   const [status, setStatus] = useState<GuideStatus>('loading')
+  const [centering, setCentering] = useState(0)
   const [ready, setReady] = useState(false)
   const [modelError, setModelError] = useState(false)
   const runningRef = useRef(false)
@@ -72,7 +79,9 @@ export function useFaceGuide(videoRef: RefObject<HTMLVideoElement | null>, enabl
       if (video && video.videoWidth > 0) {
         try {
           const dets = await faceapi.detectAllFaces(video, DETECT_OPTS)
-          setStatus(evaluate(dets.map((d) => d.box), video.videoWidth, video.videoHeight))
+          const ev = evaluate(dets.map((d) => d.box), video.videoWidth, video.videoHeight)
+          setStatus(ev.status)
+          setCentering(ev.centering)
         } catch {
           /* ignora un fotograma fallido */
         }
@@ -87,5 +96,5 @@ export function useFaceGuide(videoRef: RefObject<HTMLVideoElement | null>, enabl
     }
   }, [enabled, ready, modelError, videoRef])
 
-  return { status, ready, modelError }
+  return { status, centering, ready, modelError }
 }

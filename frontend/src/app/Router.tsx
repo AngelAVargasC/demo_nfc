@@ -4,6 +4,7 @@ import { Layout } from '@/shared/components/Layout'
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute'
 
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'))
+const AccessReader = lazy(() => import('@/features/faceid/AccessReader'))
 const DashboardPage = lazy(() => import('@/features/dashboard/DashboardPage'))
 const NFCPage = lazy(() => import('@/features/nfc/NFCPage'))
 const FaceIDPage = lazy(() => import('@/features/faceid/FaceIDPage'))
@@ -21,6 +22,9 @@ export function AppRouter() {
     <Suspense fallback={<Loading />}>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        {/* Lector de acceso (kiosco): pantalla completa, sin login —
+            se protege con su propio token de kiosco. */}
+        <Route path="/lector" element={<AccessReader />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
         <Route path="/dashboard" element={

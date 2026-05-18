@@ -30,9 +30,91 @@
   border-radius: 10px;
 }
 .faceid_tab_active {
-  color: var(--fid-ok);
-  background: var(--fid-ok-soft);
-  border-color: var(--fid-ok);
+  color: var(--guinda);
+  background: var(--guinda-soft);
+  border-color: var(--guinda);
+}
+
+/* ---- Lanzador del modo lector ------------------------------------------- */
+.faceid_launch {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0;
+}
+.faceid_launch_card {
+  width: 100%;
+  max-width: 520px;
+  padding: 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+}
+.faceid_launch_icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  color: var(--guinda);
+  background: var(--guinda-soft);
+  border-radius: var(--radius-md);
+}
+.faceid_launch_title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+}
+.faceid_launch_desc {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.faceid_launch_points {
+  margin: 18px 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.faceid_launch_points li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  color: var(--text);
+}
+.faceid_launch_points svg { flex-shrink: 0; color: var(--guinda); }
+.faceid_launch_btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 46px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--on-guinda);
+  background: var(--guinda);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 160ms ease;
+}
+.faceid_launch_btn:hover { background: var(--guinda-hover); }
+.faceid_launch_note {
+  margin-top: 14px;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--subtle);
+}
+.faceid_launch_note code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--guinda);
 }
 
 /* ---- Layout ------------------------------------------------------------- */
@@ -321,4 +403,557 @@
 /* ---- Responsive --------------------------------------------------------- */
 @media (max-width: 768px) {
   .faceid_grid { grid-template-columns: 1fr; }
+}
+
+/* ===========================================================================
+   Enrolamiento guiado · asistente por pasos (prefijo enr_)
+   ---------------------------------------------------------------------------
+   Diseño tipo "ventana por paso": panel centrado, responsive (web desktop).
+   Acento de marca: guinda institucional. Geist Mono para datos sistémicos.
+   =========================================================================== */
+.enr {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 16px;
+}
+
+.enr_panel {
+  width: 100%;
+  max-width: 528px;
+  padding: 22px 26px 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--elev-2);
+}
+
+/* Columna del asistente. En desktop se centra dentro del panel a lo ancho. */
+.enr_stage {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* ---- Desktop: el panel ocupa todo el ancho y alto del layout ------------ */
+@media (min-width: 769px) {
+  .enr {
+    padding: 0;
+    min-height: calc(100dvh - var(--topbar-h, 60px) - 132px);
+  }
+  .enr_panel {
+    flex: 1;
+    max-width: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 34px 40px;
+  }
+  .enr_stage {
+    flex: 1;
+    max-width: 600px;
+  }
+}
+
+/* ---- Barra superior ----------------------------------------------------- */
+.enr_topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.enr_top_btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  color: var(--text);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+.enr_top_btn:hover:not(:disabled) { background: var(--surface-hover); }
+.enr_top_btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.enr_step_count {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.enr_logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: 0.06em;
+  text-align: center;
+  color: var(--text);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+/* ---- Segmentos de progreso ---------------------------------------------- */
+.enr_segments {
+  display: flex;
+  gap: 6px;
+  margin: 18px 0 4px;
+}
+.enr_segment {
+  flex: 1;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-hover);
+  transition: background 220ms ease;
+}
+.enr_segment_done { background: var(--guinda); }
+.enr_segment_active {
+  box-shadow: 0 0 0 1px var(--guinda-soft);
+}
+
+/* ---- Encabezado del paso ------------------------------------------------ */
+.enr_head { margin-top: 18px; }
+.enr_eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--guinda);
+}
+.enr_eyebrow_dot { font-size: 8px; }
+.enr_title {
+  margin-top: 10px;
+  font-size: 23px;
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+}
+.enr_desc {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+/* ---- Cuerpo (varía por paso) -------------------------------------------- */
+.enr_body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  margin: 20px 0;
+  min-height: 312px;
+}
+
+.enr_note {
+  padding: 14px 4px;
+  font-size: 13px;
+  color: var(--subtle);
+}
+.enr_note_err { color: var(--danger); }
+
+/* ---- Paso 1 · selección de miembro -------------------------------------- */
+.enr_search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 44px;
+  padding: 0 14px;
+  color: var(--subtle);
+  background: var(--input-bg);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+}
+.enr_search:focus-within {
+  border-color: var(--guinda);
+  box-shadow: 0 0 0 3px var(--guinda-soft);
+}
+.enr_search_input {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--text);
+  background: none;
+  border: none;
+  outline: none;
+}
+.enr_search_input::placeholder { color: var(--subtle); }
+
+.enr_user_list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 252px;
+  margin-top: 12px;
+  overflow-y: auto;
+}
+.enr_user {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 11px;
+  text-align: left;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+.enr_user:hover { background: var(--surface-hover); }
+.enr_user_active {
+  background: var(--guinda-soft);
+  border-color: var(--guinda);
+}
+.enr_user_avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--guinda);
+  background: var(--guinda-soft);
+  border-radius: 50%;
+}
+.enr_user_text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.enr_user_name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.enr_user_mail {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.enr_user_check { flex-shrink: 0; color: var(--guinda); }
+
+/* ---- Paso 2 · preparación ----------------------------------------------- */
+.enr_prep {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.enr_prep_item {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 14px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.enr_prep_icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  color: var(--guinda);
+  background: var(--guinda-soft);
+  border-radius: var(--radius-sm);
+}
+.enr_prep_text { display: flex; flex-direction: column; gap: 3px; }
+.enr_prep_title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+.enr_prep_sub {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.enr_selected {
+  margin-top: 14px;
+  padding: 11px 14px;
+  font-size: 12.5px;
+  color: var(--muted);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.enr_selected strong { color: var(--text); font-weight: 650; }
+
+/* ---- Paso 3 · escáner facial -------------------------------------------- */
+.enr_scanner {
+  position: relative;
+  width: 300px;
+  max-width: 100%;
+  margin: 0 auto;
+  aspect-ratio: 1;
+}
+.enr_ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.enr_ring_track {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 2;
+}
+.enr_ring_dash {
+  fill: none;
+  stroke: var(--border-strong);
+  stroke-width: 1;
+  stroke-dasharray: 1.5 4;
+}
+.enr_ring_progress {
+  fill: none;
+  stroke: var(--guinda);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 60px 60px;
+  transition: stroke-dasharray 360ms ease;
+}
+
+.enr_lens {
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #000;
+}
+.enr_video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Espejo: vista natural tipo selfie. */
+  transform: scaleX(-1);
+}
+
+.enr_bracket {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgba(255, 255, 255, 0.65);
+  transition: border-color 200ms ease;
+}
+.enr_bracket_tl { top: 24%; left: 24%; border-right: none; border-bottom: none; }
+.enr_bracket_tr { top: 24%; right: 24%; border-left: none; border-bottom: none; }
+.enr_bracket_bl { bottom: 24%; left: 24%; border-right: none; border-top: none; }
+.enr_bracket_br { bottom: 24%; right: 24%; border-left: none; border-top: none; }
+
+.enr_reticle {
+  position: absolute;
+  top: 50%;
+  left: 16%;
+  right: 16%;
+  height: 1.5px;
+  background: rgba(255, 255, 255, 0.55);
+  transition: background 200ms ease;
+}
+.enr_pose {
+  position: absolute;
+  top: 14px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.85);
+}
+
+/* Tinte del retículo según el estado de la guía. */
+.enr_lens_ok   .enr_bracket { border-color: var(--success); }
+.enr_lens_ok   .enr_reticle { background: var(--success); }
+.enr_lens_warn .enr_bracket { border-color: var(--warning); }
+.enr_lens_warn .enr_reticle { background: var(--warning); }
+.enr_lens_bad  .enr_bracket { border-color: var(--danger); }
+.enr_lens_bad  .enr_reticle { background: var(--danger); }
+
+/* ---- Métricas en vivo --------------------------------------------------- */
+.enr_metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 9px;
+  margin-top: 18px;
+}
+.enr_metric {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 13px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.enr_metric_label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+.enr_metric_value {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--guinda);
+  font-variant-numeric: tabular-nums;
+}
+.enr_metric_value small {
+  margin-left: 2px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* ---- Paso 4 · confirmación ---------------------------------------------- */
+.enr_done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 36px 0;
+}
+.enr_done_icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 18px;
+  color: var(--on-guinda);
+  background: var(--guinda);
+  border-radius: 50%;
+  box-shadow: 0 8px 24px var(--guinda-soft);
+}
+.enr_done_name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.enr_done_meta {
+  margin-top: 5px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+/* ---- Pie del asistente -------------------------------------------------- */
+.enr_foot { margin-top: 4px; }
+
+.enr_btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 48px;
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--on-guinda);
+  background: var(--guinda);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 160ms ease, opacity 160ms ease;
+}
+.enr_btn:hover:not(:disabled) { background: var(--guinda-hover); }
+.enr_btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.enr_btn_ghost {
+  color: var(--text);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+}
+.enr_btn_ghost:hover:not(:disabled) { background: var(--surface-hover); }
+
+.enr_foot_actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.enr_status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 16px;
+  background: var(--guinda-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.enr_status_dot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--subtle);
+}
+.enr_status_dot_ok {
+  background: var(--success);
+  box-shadow: 0 0 0 3px var(--success-soft);
+}
+.enr_status_text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.enr_status_pct {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.enr_status_manual {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  padding: 5px 9px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--guinda);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.enr_status_manual:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ---- Responsive --------------------------------------------------------- */
+@media (max-width: 540px) {
+  .enr_panel { padding: 18px 16px 20px; }
+  .enr_title { font-size: 20px; }
+  .enr_body { min-height: 0; }
+  .enr_scanner { width: 240px; }
+  .enr_status { flex-wrap: wrap; }
 }

@@ -1,0 +1,552 @@
+/* ===========================================================================
+   AccessReader.css  ·  Lector de acceso · modo kiosco a pantalla completa
+   ---------------------------------------------------------------------------
+   Vista autónoma (sin sidebar/topbar). Protegida por token de kiosco, no por
+   login. Tema fijo oscuro con acento verde lima — independiente del tema app.
+   Convención: reader_<elemento>
+   =========================================================================== */
+
+.reader {
+  --k-bg:        #0a0a0a;
+  --k-surface:   #151515;
+  --k-surface-2: #1d1d1d;
+  --k-border:    #2a2a2a;
+  --k-text:      #f0f0f1;
+  --k-muted:     #8c8c8e;
+  --k-subtle:    #5c5c5e;
+  --k-lime:      #c8e92c;
+  --k-lime-dim:  rgba(200, 233, 44, 0.13);
+  --k-amber:     #eab308;
+  --k-red:       #f0444b;
+  --k-red-dim:   rgba(240, 68, 75, 0.13);
+
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  overflow-y: auto;
+  background: var(--k-bg);
+  color: var(--k-text);
+  font-family: var(--font-sans);
+}
+.reader_denied {
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(240, 68, 75, 0.12) 0%, transparent 60%),
+    #120909;
+}
+
+/* ===========================================================================
+   Pantalla de configuración (token)
+   =========================================================================== */
+.reader_lockwrap {
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.reader_lock {
+  width: 100%;
+  max-width: 408px;
+  padding: 30px 30px 26px;
+  background: var(--k-surface);
+  border: 1px solid var(--k-border);
+  border-radius: 18px;
+}
+.reader_lock_badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 18px;
+  color: #0a0a0a;
+  background: var(--k-lime);
+  border-radius: 12px;
+}
+.reader_lock_title {
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.reader_lock_desc {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--k-muted);
+}
+.reader_lock_err {
+  margin-top: 16px;
+  padding: 9px 12px;
+  font-size: 12.5px;
+  color: var(--k-red);
+  background: var(--k-red-dim);
+  border: 1px solid var(--k-red);
+  border-radius: 9px;
+}
+.reader_lock_label {
+  display: block;
+  margin: 16px 0 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--k-muted);
+}
+.reader_lock_input {
+  width: 100%;
+  height: 44px;
+  padding: 0 13px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--k-text);
+  background: #0d0d0d;
+  border: 1px solid var(--k-border);
+  border-radius: 10px;
+  outline: none;
+}
+.reader_lock_input:focus {
+  border-color: var(--k-lime);
+  box-shadow: 0 0 0 3px var(--k-lime-dim);
+}
+.reader_lock_row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.reader_lock_btn {
+  width: 100%;
+  height: 46px;
+  margin-top: 22px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #0a0a0a;
+  background: var(--k-lime);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: filter 140ms ease;
+}
+.reader_lock_btn:hover { filter: brightness(1.08); }
+
+/* ===========================================================================
+   Barra superior
+   =========================================================================== */
+.reader_top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 26px;
+  border-bottom: 1px solid var(--k-border);
+}
+.reader_org {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.reader_org_logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1.05;
+  text-align: center;
+  color: var(--k-text);
+  background: var(--k-surface);
+  border: 1px solid var(--k-border);
+  border-radius: 9px;
+}
+.reader_org_text { display: flex; flex-direction: column; gap: 2px; }
+.reader_org_name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--k-text);
+}
+.reader_org_sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--k-subtle);
+}
+
+.reader_badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 13px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  border: 1px solid var(--k-border);
+}
+.reader_badge_dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.reader_badge_ok { color: var(--k-lime); background: var(--k-lime-dim); }
+.reader_badge_no { color: var(--k-red);  background: var(--k-red-dim); }
+
+/* ===========================================================================
+   Escenario central
+   =========================================================================== */
+.reader_stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 40px 24px;
+  text-align: center;
+}
+
+/* ---- Escáner circular --------------------------------------------------- */
+.reader_scanner {
+  position: relative;
+  width: 340px;
+  max-width: 76vw;
+  aspect-ratio: 1;
+  margin-bottom: 10px;
+}
+.reader_ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.reader_ring_track {
+  fill: none;
+  stroke: var(--k-border);
+  stroke-width: 1.5;
+}
+.reader_ring_dash {
+  fill: none;
+  stroke: #333;
+  stroke-width: 1;
+  stroke-dasharray: 1.5 4;
+}
+.reader_scanner_live .reader_ring_dash { stroke: rgba(200, 233, 44, 0.4); }
+.reader_ring_spin {
+  fill: none;
+  stroke: var(--k-lime);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transform-origin: 60px 60px;
+  animation: reader_spin 1.5s linear infinite;
+}
+@keyframes reader_spin { to { transform: rotate(360deg); } }
+
+.reader_lens {
+  position: absolute;
+  inset: 20px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #000;
+}
+.reader_video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+  opacity: 0.42;
+  transition: opacity 260ms ease;
+}
+.reader_scanner_live .reader_video { opacity: 1; }
+.reader_lens_icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--k-subtle);
+}
+/* Malla decorativa durante el reconocimiento. */
+.reader_mesh {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(200, 233, 44, 0.55) 1px, transparent 1.4px);
+  background-size: 22px 22px;
+  opacity: 0.5;
+  mix-blend-mode: screen;
+}
+
+/* Esquinas tipo corchete */
+.reader_bracket {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  border: 2.5px solid rgba(200, 233, 44, 0.55);
+  transition: border-color 220ms ease;
+}
+.reader_bracket_tl { top: 0; left: 0; border-right: none; border-bottom: none; border-radius: 4px 0 0 0; }
+.reader_bracket_tr { top: 0; right: 0; border-left: none; border-bottom: none; border-radius: 0 4px 0 0; }
+.reader_bracket_bl { bottom: 0; left: 0; border-right: none; border-top: none; border-radius: 0 0 0 4px; }
+.reader_bracket_br { bottom: 0; right: 0; border-left: none; border-top: none; border-radius: 0 0 4px 0; }
+.reader_scanner_ok   .reader_bracket { border-color: var(--k-lime); }
+.reader_scanner_warn .reader_bracket { border-color: var(--k-amber); }
+
+/* ---- Textos del escenario ----------------------------------------------- */
+.reader_eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--k-lime);
+}
+.reader_eyebrow_no { color: var(--k-red); }
+.reader_eyebrow_dot { font-size: 8px; }
+
+.reader_headline {
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--k-text);
+}
+.reader_headline_dim { color: var(--k-subtle); }
+
+.reader_name {
+  max-width: 16ch;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--k-text);
+}
+
+.reader_lead {
+  max-width: 38ch;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--k-muted);
+}
+
+.reader_actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+.reader_ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--k-muted);
+  background: var(--k-surface);
+  border: 1px solid var(--k-border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: color 140ms ease, border-color 140ms ease;
+}
+.reader_ghost:hover { color: var(--k-text); border-color: #3a3a3a; }
+
+/* ---- Métricas en vivo --------------------------------------------------- */
+.reader_metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(118px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.reader_metric {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 13px 16px;
+  text-align: left;
+  background: var(--k-surface);
+  border: 1px solid var(--k-border);
+  border-radius: 11px;
+}
+.reader_metric_label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--k-subtle);
+}
+.reader_metric_value {
+  font-family: var(--font-mono);
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--k-lime);
+}
+.reader_metric_value small {
+  margin-left: 2px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--k-muted);
+}
+
+/* ---- Sello de resultado ------------------------------------------------- */
+.reader_seal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 132px;
+  height: 132px;
+  margin-bottom: 6px;
+  border-radius: 50%;
+}
+.reader_seal_ok {
+  color: #0a0a0a;
+  background: var(--k-lime);
+  box-shadow: 0 0 64px rgba(200, 233, 44, 0.4);
+}
+.reader_seal_no {
+  color: var(--k-red);
+  background: var(--k-red-dim);
+  border: 2.5px solid var(--k-red);
+}
+
+/* ---- Tarjetas de información (concedido) -------------------------------- */
+.reader_cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(132px, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+.reader_card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 13px 16px;
+  text-align: left;
+  background: var(--k-surface);
+  border: 1px solid var(--k-border);
+  border-radius: 11px;
+}
+.reader_card_label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--k-subtle);
+}
+.reader_card_value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--k-text);
+}
+
+.reader_gate {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--k-border);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--k-lime);
+}
+
+/* ---- Motivo del rechazo (denegado) -------------------------------------- */
+.reader_reason {
+  width: 100%;
+  max-width: 420px;
+  margin-top: 16px;
+  text-align: left;
+  background: rgba(240, 68, 75, 0.07);
+  border: 1px solid rgba(240, 68, 75, 0.32);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.reader_reason_head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--k-red);
+  background: rgba(240, 68, 75, 0.1);
+}
+.reader_reason_body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 13px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--k-text);
+}
+.reader_reason_meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--k-muted);
+}
+
+.reader_retry {
+  margin-top: 20px;
+  padding: 12px 22px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--k-text);
+  background: var(--k-surface);
+  border: 1px solid var(--k-border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 140ms ease;
+}
+.reader_retry:hover { border-color: #3a3a3a; }
+
+/* ===========================================================================
+   Pie / telemetría
+   =========================================================================== */
+.reader_foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 26px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  color: var(--k-subtle);
+  border-top: 1px solid var(--k-border);
+}
+.reader_foot_clock { color: var(--k-muted); }
+
+/* ===========================================================================
+   Responsive
+   =========================================================================== */
+@media (max-width: 600px) {
+  .reader_top { padding: 14px 16px; }
+  .reader_stage { padding: 28px 18px; }
+  .reader_scanner { width: 260px; }
+  .reader_headline { font-size: 32px; }
+  .reader_name { font-size: 30px; }
+  .reader_seal { width: 108px; height: 108px; }
+  .reader_metrics,
+  .reader_cards { grid-template-columns: repeat(3, 1fr); gap: 7px; }
+  .reader_metric,
+  .reader_card { padding: 10px 11px; }
+  .reader_foot { font-size: 9px; padding: 10px 14px; }
+  .reader_foot span:nth-child(2) { display: none; }
+}
