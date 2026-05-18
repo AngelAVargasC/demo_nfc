@@ -85,6 +85,10 @@ trivial para CPU.
   igual de cerca → rechazar (evita falsos positivos en 1:N).
 - Guardar **3–5 embeddings por usuario** (distintos ángulos/luz) → mejor recall.
 - Registrar `confidence` (score) en cada `AccessEvent`.
+- **Calidad de captura es crítica.** Capturas borrosas/oscuras generan embeddings
+  inestables que se parecen a cualquiera (falsos positivos). Gate `FACE_MIN_DET_SCORE`
+  rechaza detecciones pobres al enrolar e identificar. Un perfil malo entre los
+  enrolados envenena el match (se usa la mejor similitud) → re-enrolar limpio.
 
 ---
 

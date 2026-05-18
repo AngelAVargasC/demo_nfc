@@ -47,6 +47,8 @@ class Settings(BaseSettings):
     FACE_MATCH_THRESHOLD: float = 0.50
     # Margen mínimo entre el match #1 y el #2 (evita falsos positivos en 1:N).
     FACE_MATCH_MARGIN: float = 0.05
+    # Confianza mínima de detección del rostro (rechaza capturas borrosas/parciales).
+    FACE_MIN_DET_SCORE: float = 0.62
     # Máximo de perfiles faciales por usuario.
     FACE_MAX_PROFILES_PER_USER: int = 5
 

@@ -148,7 +148,13 @@ class FaceEnrollUseCase:
         if len(faces) > 1:
             raise ValueError("Se detectaron varios rostros; usa una foto de una sola persona")
 
-        embedding = faces[0].get("embedding") or []
+        face = faces[0]
+        if float(face.get("det_score") or 0.0) < settings.FACE_MIN_DET_SCORE:
+            raise ValueError(
+                "El rostro no se ve con suficiente claridad. Acércate a la cámara, "
+                "mejora la iluminación y mira de frente."
+            )
+        embedding = face.get("embedding") or []
         if len(embedding) != 512:
             raise ValueError("El servicio de reconocimiento devolvió un embedding inválido")
 
@@ -194,7 +200,12 @@ class FaceAccessUseCase:
             await self._record(None, AccessResult.DENIED, DenialReason.NO_FACE, ip, device_info, location, None, chamber_degree)
             return self._deny("No se detectó ningún rostro", DenialReason.NO_FACE)
 
-        embedding = faces[0].get("embedding") or []
+        face = faces[0]
+        if float(face.get("det_score") or 0.0) < settings.FACE_MIN_DET_SCORE:
+            await self._record(None, AccessResult.DENIED, DenialReason.NO_FACE, ip, device_info, location, None, chamber_degree)
+            return self._deny("Rostro poco claro: acércate y mira de frente a la cámara", DenialReason.NO_FACE)
+
+        embedding = face.get("embedding") or []
         if len(embedding) != 512:
             await self._record(None, AccessResult.DENIED, DenialReason.NO_FACE, ip, device_info, location, None, chamber_degree)
             return self._deny("Imagen sin rostro válido", DenialReason.NO_FACE)
