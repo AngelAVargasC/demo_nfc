@@ -3,155 +3,345 @@
    ---------------------------------------------------------------------------
    Convencion de clases:  login_<elemento>[_<n>]
    El prefijo "login_" garantiza que estos estilos no choquen con otras vistas.
+
+   Layout: panel visual (imagen institucional) + panel de formulario.
+   - El panel visual va SIEMPRE sobre la foto oscura -> texto claro fijo.
+   - El panel de formulario respeta el tema: blanco limpio en claro, oscuro
+     en tema dark. El acento de marca es el guinda institucional CDMX.
    =========================================================================== */
 
 .login_page {
   display: flex;
   flex-direction: row;
   min-height: 100vh;
-  background: var(--app-bg);
+  background: var(--surface);
 }
 
-/* ---- Panel visual (imagen lateral) -------------------------------------- */
+/* ===========================================================================
+   Panel visual (imagen lateral)
+   =========================================================================== */
 .login_visual {
   position: relative;
-  width: 60%;
+  width: 56%;
   min-height: 100vh;
   background-image: url('/images/masonsidelogin.jpg');
   background-size: cover;
   background-position: center;
+  overflow: hidden;
 }
 
 .login_visual_overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(110deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.12) 100%);
-}
-
-.login_visual_fade {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 260px;
-  height: 100%;
-  pointer-events: none;
+  /* Velo muy intenso: la imagen apenas se insinua como textura;
+     se intensifica abajo para mantener legible el texto. */
   background: linear-gradient(
-    90deg,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(11, 15, 20, 0.08) 20%,
-    var(--app-bg) 100%
+    180deg,
+    rgba(0, 0, 0, 0.74) 0%,
+    rgba(0, 0, 0, 0.82) 50%,
+    rgba(0, 0, 0, 0.95) 100%
   );
 }
 
-/* ---- Panel del formulario ----------------------------------------------- */
-.login_panel {
+/* ---- Esquinas decorativas tipo "corchete" -------------------------------- */
+.login_corner {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  z-index: 2;
+  pointer-events: none;
+}
+.login_corner_tl {
+  top: 22px;
+  left: 22px;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.45);
+  border-left: 1.5px solid rgba(255, 255, 255, 0.45);
+}
+.login_corner_tr {
+  top: 22px;
+  right: 22px;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.45);
+  border-right: 1.5px solid rgba(255, 255, 255, 0.45);
+}
+.login_corner_bl {
+  bottom: 22px;
+  left: 22px;
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.45);
+  border-left: 1.5px solid rgba(255, 255, 255, 0.45);
+}
+.login_corner_br {
+  bottom: 22px;
+  right: 22px;
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.45);
+  border-right: 1.5px solid rgba(255, 255, 255, 0.45);
+}
+
+.login_visual_inner {
   position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 58px 60px;
+  /* Con el velo minimo, la sombra mantiene legible el texto sobre la foto. */
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.65);
+}
+
+/* ---- Encabezado de organizacion ----------------------------------------- */
+/* En posicion absoluta: el tamano del logo NO altera el resto del layout.
+   El logo es un lockup horizontal (escudo + texto); la card se ajusta a su
+   proporcion natural para que se vea completo, sin recortes. */
+.login_org {
+  position: absolute;
+  top: 58px;
+  left: 60px;
+}
+
+.login_org_mark {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px;
+  background: #ffffffe7;
+  border-radius: var(--radius-xl);
+  /* box-shadow: 0 6px 22px rgba(0, 0, 0, 0.4); */
+}
+
+.login_org_logo {
+  display: block;
+  height: 46px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* ---- Bloque central ------------------------------------------------------ */
+.login_hero {
+  max-width: 520px;
+}
+
+.login_eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.login_eyebrow_dot {
+  color: #d3597a;
+  font-size: 9px;
+}
+
+.login_headline {
+  margin-top: 22px;
+  font-size: 46px;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+}
+
+.login_headline_dim {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.login_lead {
+  margin-top: 22px;
+  max-width: 430px;
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+/* ---- Estadisticas -------------------------------------------------------- */
+.login_stats {
+  display: flex;
+  gap: 46px;
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.login_stat {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.login_stat_value {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+}
+
+.login_stat_label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ---- Pie del panel visual ----------------------------------------------- */
+.login_visual_foot {
+  position: absolute;
+  left: 60px;
+  right: 60px;
+  bottom: 58px;
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+/* ===========================================================================
+   Panel del formulario
+   =========================================================================== */
+.login_form_side {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40%;
+  width: 44%;
   min-height: 100vh;
-  padding: 38px 34px;
-  background: var(--app-bg);
+  padding: 48px 56px;
+  background: var(--surface);
 }
 
-.login_logo {
-  position: absolute;
-  top: 24px;
-  left: 26px;
-  width: 170px;
-  height: 62px;
-  overflow: hidden;
+.login_form_wrap {
+  width: 100%;
+  max-width: 384px;
 }
 
-.login_logo_img {
-  display: block;
-  width: 170px;
-  height: 104px;
-  object-fit: cover;
-  transform: translateY(-22px);
+/* ---- Meta superior ------------------------------------------------------- */
+.login_form_meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 26px;
+  margin-bottom: 26px;
+  border-bottom: 1px solid var(--border);
 }
 
-.login_brand {
-  position: absolute;
-  top: 28px;
-  right: 32px;
-  text-align: right;
+.login_meta_label,
+.login_meta_secure {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
-.login_brand_title {
-  font-size: 34px;
-  font-weight: 800;
-  line-height: 1;
-  color: var(--text);
+.login_meta_label {
+  color: var(--subtle);
 }
 
-.login_brand_subtitle {
-  margin-top: 6px;
-  font-size: 12px;
+.login_meta_secure {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   color: var(--muted);
 }
 
-/* ---- Formulario --------------------------------------------------------- */
-.login_form_wrap {
-  width: 100%;
-  max-width: 470px;
+.login_meta_dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 3px var(--success-soft);
 }
 
-.login_form_spacer {
-  height: 34px;
-}
-
+/* ---- Encabezado del formulario ------------------------------------------ */
 .login_form_header {
-  margin-bottom: 18px;
+  margin-bottom: 26px;
 }
 
 .login_title {
-  font-size: 22px;
-  font-weight: 800;
-  line-height: 1;
-  color: var(--text);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
 }
 
 .login_subtitle {
-  margin-top: 6px;
-  font-size: 12px;
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.55;
   color: var(--muted);
 }
 
+/* ---- Campos -------------------------------------------------------------- */
 .login_field {
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .login_field_password {
   position: relative;
-  margin-bottom: 22px;
+}
+
+.login_label_row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
 }
 
 .login_label {
   display: block;
   margin-bottom: 8px;
-  font-size: 13px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.login_forgot {
+  font-size: 12px;
   font-weight: 600;
-  color: var(--text);
+  color: var(--guinda);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 140ms ease;
+}
+
+.login_forgot:hover {
+  color: var(--guinda-hover);
+  text-decoration: underline;
 }
 
 .login_input {
   width: 100%;
   height: 46px;
   padding: 0 14px;
-  font-size: 15px;
+  font-family: var(--font-sans);
+  font-size: 14.5px;
   color: var(--text);
   background: var(--input-bg);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   outline: none;
   transition: border-color 140ms ease, box-shadow 140ms ease;
 }
 
+.login_input::placeholder {
+  color: var(--subtle);
+}
+
 .login_input:focus {
-  border-color: var(--border-focus);
-  box-shadow: var(--focus-ring);
+  border-color: var(--guinda);
+  box-shadow: 0 0 0 3px var(--guinda-soft);
 }
 
 .login_input_password {
@@ -160,84 +350,197 @@
 
 .login_toggle_pwd {
   position: absolute;
-  top: 40px;
+  top: 33px;
   right: 12px;
   display: flex;
   padding: 0;
-  color: var(--muted);
+  color: var(--subtle);
   background: none;
   border: none;
   cursor: pointer;
+  transition: color 140ms ease;
 }
 
+.login_toggle_pwd:hover {
+  color: var(--muted);
+}
+
+/* ---- Recordar dispositivo ----------------------------------------------- */
+.login_remember {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 18px 0 22px;
+  cursor: pointer;
+}
+
+.login_remember_box {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--guinda);
+  cursor: pointer;
+}
+
+.login_remember_text {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ---- Boton principal ----------------------------------------------------- */
 .login_submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
   height: 48px;
-  font-size: 19px;
-  font-weight: 700;
-  color: var(--on-primary);
-  background: var(--primary);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--on-guinda);
+  background: var(--guinda);
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background 200ms ease;
+  transition: background 160ms ease, transform 80ms ease;
 }
 
 .login_submit:hover {
-  background: var(--primary-hover);
+  background: var(--guinda-hover);
+}
+
+.login_submit:active {
+  transform: scale(0.99);
 }
 
 .login_submit:disabled {
-  color: var(--primary-strong);
-  background: var(--primary-soft);
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
-/* ---- Responsive: tablet ------------------------------------------------- */
-@media (max-width: 1023px) {
+/* ---- Divisor de biometria ----------------------------------------------- */
+.login_divider {
+  position: relative;
+  margin: 26px 0 18px;
+  text-align: center;
+}
+
+.login_divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+}
+
+.login_divider_text {
+  position: relative;
+  padding: 0 14px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--subtle);
+  background: var(--surface);
+}
+
+/* ---- Botones biometricos ------------------------------------------------- */
+.login_biometric {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.login_bio_btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+
+.login_bio_btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
+/* ---- Nota de ayuda ------------------------------------------------------- */
+.login_help {
+  margin-top: 24px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--subtle);
+}
+
+.login_help strong {
+  font-weight: 600;
+  color: var(--guinda);
+}
+
+/* ===========================================================================
+   Responsive
+   =========================================================================== */
+@media (max-width: 1100px) {
   .login_visual {
-    width: 52%;
+    width: 50%;
   }
-  .login_panel {
-    width: 48%;
+  .login_form_side {
+    width: 50%;
+    padding: 40px 40px;
+  }
+  .login_visual_inner {
+    padding: 48px 44px;
+  }
+  .login_org {
+    top: 48px;
+    left: 44px;
+  }
+  .login_visual_foot {
+    left: 44px;
+    right: 44px;
+    bottom: 48px;
+  }
+  .login_headline {
+    font-size: 38px;
+  }
+  .login_stats {
+    gap: 30px;
   }
 }
 
-/* ---- Responsive: movil -------------------------------------------------- */
-@media (max-width: 767px) {
+@media (max-width: 880px) {
   .login_page {
     flex-direction: column;
   }
   .login_visual {
     display: none;
   }
-  .login_panel {
+  .login_form_side {
     width: 100%;
-    padding: 24px 18px;
+    min-height: 100vh;
+    padding: 40px 22px;
   }
-  .login_logo {
-    top: 16px;
-    left: 14px;
-    width: 136px;
+}
+
+@media (max-width: 420px) {
+  .login_form_side {
+    padding: 32px 18px;
   }
-  .login_logo_img {
-    width: 136px;
-    height: 84px;
-  }
-  .login_brand {
-    top: 18px;
-    right: 14px;
-  }
-  .login_brand_title {
-    font-size: 27px;
-  }
-  .login_brand_subtitle {
-    font-size: 10.5px;
-  }
-  .login_form_wrap {
-    max-width: 420px;
-  }
-  .login_form_spacer {
-    height: 60px;
+  .login_title {
+    font-size: 23px;
   }
 }

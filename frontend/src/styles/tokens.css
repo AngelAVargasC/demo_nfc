@@ -30,6 +30,11 @@
   --primary-soft:    #e6f6f3;
   --primary-strong:  #00735f;
   --on-primary:      #ffffff;
+  /* Guinda institucional CDMX */
+  --guinda:          #9f2241;
+  --guinda-hover:    #82182f;
+  --guinda-soft:     #f7e9ed;
+  --on-guinda:       #ffffff;
   --accent:          #4f46e5;
   --accent-soft:     #edeefe;
   --warning:         #b45309;
@@ -46,25 +51,31 @@
 
 /* ---- TEMA OSCURO --------------------------------------------------------- */
 [data-theme="dark"] {
-  --app-bg:          #0a0d12;
-  --surface:         #11151c;
-  --surface-alt:     #161b24;
-  --surface-hover:   #1a202a;
-  --border:          #1d232d;
-  --border-strong:   #2a3140;
+  /* Escala neutra: negro pleno #000000 de base, sin tinte azulado. */
+  --app-bg:          #000000;
+  --surface:         #0c0c0c;
+  --surface-alt:     #141414;
+  --surface-hover:   #1c1c1c;
+  --border:          #232323;
+  --border-strong:   #343434;
   --border-focus:    #00c3a3;
-  --text:            #e7ebf1;
-  --text-strong:     #f3f5f8;
-  --muted:           #8e98a6;
-  --subtle:          #5d6675;
-  --input-bg:        #0f131a;
+  --text:            #ededee;
+  --text-strong:     #f6f6f7;
+  --muted:           #9a9a9c;
+  --subtle:          #6b6b6e;
+  --input-bg:        #000000;
   --active-bg:       rgba(0, 195, 163, 0.12);
-  --toast-bg:        #11151c;
+  --toast-bg:        #0c0c0c;
   --primary:         #00c3a3;
   --primary-hover:   #00d6b3;
   --primary-soft:    rgba(0, 195, 163, 0.12);
   --primary-strong:  #00e3be;
   --on-primary:      #ffffff;
+  /* Guinda institucional CDMX */
+  --guinda:          #c33356;
+  --guinda-hover:    #d44467;
+  --guinda-soft:     rgba(195, 51, 86, 0.14);
+  --on-guinda:       #ffffff;
   --accent:          #818cf8;
   --accent-soft:     rgba(129, 140, 248, 0.14);
   --warning:         #eab308;
@@ -88,6 +99,6 @@
   --radius-xl:   18px;
   --radius-pill: 999px;
 
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 }

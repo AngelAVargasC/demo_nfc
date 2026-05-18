@@ -42,14 +42,16 @@ operada por los admins. El script masivo (Fase 5) es opcional.
 
 ```
 [Tablet en puerta — React]
-  detecta rostro (modelo ligero en navegador) + recorta + anti-spoofing
-        │  sube SOLO la cara recortada (~100x100 px)
+  guía en vivo: óvalo + indicadores (face-api.js en navegador, SOLO para guiar)
+        │  envía el fotograma capturado
+        ▼
+[API SIGAM — servicio "back"]  recibe la imagen, la reenvía al servicio ML
         ▼
 [Servicio ML en Railway — FastAPI + InsightFace]   ← servicio SEPARADO del API
-  calcula embedding ArcFace r50 (vector de 512 dimensiones)
-        │
+  detecta el rostro + calcula embedding ArcFace r50 (vector de 512 dimensiones)
+        │  devuelve el/los embedding(s)
         ▼
-[PostgreSQL + pgvector]  índice HNSW sobre ~6000 vectores
+[API SIGAM + PostgreSQL/pgvector]  índice HNSW sobre los vectores
   búsqueda 1:N → umbral + margen → decisión → AccessEvent
 ```
 
@@ -59,8 +61,9 @@ operada por los admins. El script masivo (Fase 5) es opcional.
   el propio servidor (no es API externa).
 - **Runtime:** `onnxruntime` (CPU — Railway no tiene GPU).
 - **Matching:** PostgreSQL + extensión `pgvector`, índice HNSW, distancia coseno.
-- **Anti-spoofing:** modelo de liveness pasivo (Silent-Face / MiniFASNet) para
-  que una foto impresa o una pantalla no abran la puerta.
+- **Anti-spoofing (PENDIENTE — Fase 6):** modelo de liveness pasivo
+  (Silent-Face / MiniFASNet) para que una foto impresa o pantalla no abran la
+  puerta. **Aún NO implementado.**
 
 **Por qué servidor y no navegador:** con 6000 identidades en 1:N la precisión es
 crítica (un falso positivo = entra quien no es). El modelo r50 (~160 MB) no es
@@ -165,14 +168,30 @@ trivial para CPU.
   fotograma; sin un modelo de liveness, una foto impresa o una pantalla podrían
   pasar. Es el riesgo de seguridad principal — implementar antes de producción.
 
-### Fase 5 — Enrolamiento masivo (OPCIONAL)
-- El enrolamiento normal es incremental (Fase 4). Este script solo aplica si ya
-  existen fotos previas: recorre los usuarios con `photo_url`, calcula el
-  embedding vía el servicio ML y llena `face_profiles`.
+### Fase 5 — Enrolamiento masivo ← PENDIENTE (OPCIONAL, no iniciada)
+- Opcional: solo aplica si ya existen fotos previas de los miembros.
+- Script one-off: recorre los usuarios con `photo_url`, calcula el embedding vía
+  el servicio ML y llena `face_profiles`.
+- El enrolamiento normal es incremental, por la pantalla guiada (Fase 4).
 
-### Fase 6 — Calibración y operación
-- Ajustar umbral y margen con datos reales.
-- Monitoreo de `confidence` en los `AccessEvent`.
+### Fase 6 — Calibración + Liveness ← PENDIENTE
+
+**6a. Calibración del umbral — PENDIENTE**
+- Estado actual: `FACE_MATCH_THRESHOLD` recomendado en **0.50** (rango sano
+  0.45–0.55), fijado de forma empírica con pocas personas.
+- Datos observados: misma persona ~0.65–0.95; persona distinta ~0.05–0.20.
+  El umbral va en el hueco entre ambos grupos, sesgado a FAR bajo (seguridad).
+- Pendiente: **recalibrar a escala** — al enrolar la membresía real aparecerán
+  impostores más difíciles (parecidos); elegir el umbral para un FAR objetivo
+  (ej. ≤ 0.1%). Monitorear `confidence` de los `AccessEvent`.
+
+**6b. Liveness / anti-spoofing — PENDIENTE (CRÍTICO antes de producción)**
+- Hoy NO existe. Una foto impresa o la pantalla de un celular con el rostro de
+  un miembro **abriría la puerta**. Es el riesgo de seguridad principal.
+- Plan: modelo de liveness pasivo (Silent-Face / MiniFASNet) en el navegador
+  (onnxruntime-web) o en el servicio ML; y/o reto activo (parpadeo / giro).
+- Mientras no esté: el control facial no es seguro por sí solo. El NFC sigue
+  como respaldo (métodos independientes).
 
 ---
 
@@ -181,9 +200,9 @@ trivial para CPU.
 - [x] Fase 1 — Base de datos (2026-05-17)
 - [x] Fase 2 — Servicio ML (desplegado: demonfc-production.up.railway.app)
 - [x] Fase 3 — Endpoints API (2026-05-17)
-- [x] Fase 4 — Frontend (2026-05-17; pantallas listas, falta liveness)
-- [ ] Fase 5 — Enrolamiento masivo (OPCIONAL)
-- [ ] Fase 6 — Calibración (incluye implementar liveness)
+- [x] Fase 4 — Frontend (2026-05-17; enrolar + leer, ambos guiados)
+- [ ] **Fase 5 — Enrolamiento masivo — PENDIENTE** (opcional)
+- [ ] **Fase 6 — Calibración + Liveness — PENDIENTE** (liveness es crítico)
 
 ---
 
@@ -192,3 +211,23 @@ trivial para CPU.
 - **`users.hashed_password` es `NOT NULL`.** Los ~6000 miembros que NO inician
   sesión necesitarán un valor placeholder, o hay que volver la columna nullable.
   Resolver cuando se construya el alta masiva de miembros. No bloquea FaceID.
+
+---
+
+## 8. Dónde nos quedamos (RETOMAR AQUÍ)
+
+El sistema funciona de extremo a extremo: se puede **enrolar** e **identificar**
+por rostro, ambos con flujo guiado (óvalo + indicadores en vivo). Los 4 servicios
+están desplegados en Railway: `front`, `back`, `SERVICE_FACE_ID`, `Postgres`.
+
+**Lo que FALTA, en orden de prioridad:**
+
+1. **Liveness / anti-spoofing (Fase 6b) — CRÍTICO.** Sin esto, una foto o pantalla
+   con el rostro de un miembro engaña al lector. Implementar antes de usar el
+   control facial en producción real.
+2. **Calibración a escala (Fase 6a).** A medida que se enrolen miembros,
+   recalibrar `FACE_MATCH_THRESHOLD` con datos reales (hoy en 0.50).
+3. **Enrolamiento masivo (Fase 5) — opcional.** Solo si se quieren cargar
+   embeddings desde fotos ya existentes.
+
+Además, ver la **deuda técnica** de la sección 7 (`hashed_password` NOT NULL).
