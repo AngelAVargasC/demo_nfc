@@ -183,6 +183,11 @@ export default function FaceIDPage() {
                 <div className="faceid_result_title faceid_result_title_no">ACCESO DENEGADO</div>
                 {result.user?.full_name && <div className="faceid_result_name">{result.user.full_name}</div>}
                 <div className="faceid_result_reason">{result.message ?? 'No autorizado'}</div>
+                {result.confidence != null && (
+                  <div className="faceid_result_meta">
+                    Mejor coincidencia: {(result.confidence * 100).toFixed(1)}% similitud
+                  </div>
+                )}
               </>
             )}
           </div>

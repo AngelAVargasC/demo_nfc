@@ -77,7 +77,10 @@ trivial para CPU.
 ## 3. Reglas de reconocimiento
 
 - Distancia **coseno** entre embeddings.
-- Umbral ArcFace ~0.40–0.45 — **a calibrar con datos reales**.
+- Umbral `FACE_MATCH_THRESHOLD` — default 0.50, **a calibrar con datos reales**.
+  Síntoma de umbral bajo: una persona distinta es aceptada como otra (falso
+  positivo). Calibrar viendo el `% similitud` que reporta cada acceso: el umbral
+  va entre el cluster de "misma persona" y el de "persona distinta".
 - Exigir **margen** entre el match #1 y el #2: si dos candidatos quedan casi
   igual de cerca → rechazar (evita falsos positivos en 1:N).
 - Guardar **3–5 embeddings por usuario** (distintos ángulos/luz) → mejor recall.
@@ -107,15 +110,15 @@ trivial para CPU.
   relación `User.face_profiles`.
 - [x] Dependencia `pgvector` agregada a `requirements.txt`.
 
-### Fase 2 — Servicio ML ← CÓDIGO LISTO (2026-05-17), falta desplegar
+### Fase 2 — Servicio ML ← DESPLEGADA (2026-05-17)
 - [x] Servicio en `faceid-service/`: FastAPI + InsightFace + onnxruntime.
 - [x] `GET /health` y `POST /embed` (imagen → embeddings 512-d, ordenados por
   tamaño de rostro). Protegido con cabecera `X-API-Key`.
 - [x] `Dockerfile` (Python 3.11; descarga el modelo `buffalo_l` en build).
-- [ ] **Pendiente:** desplegar en Railway como servicio nuevo apuntando a
-  `faceid-service/` (Root Directory), definir `API_KEY`, y verificar `/health`.
-  Lo hace el usuario desde el panel de Railway (Claude no tiene acceso a la
-  cuenta). Ver `faceid-service/README.md`.
+- [x] Desplegado en Railway. URL: `https://demonfc-production.up.railway.app`
+  (`/health` OK, modelo `buffalo_l` cargado).
+- En el backend: `FACEID_SERVICE_URL` apunta a esa URL y `FACEID_API_KEY` debe
+  coincidir con la `API_KEY` del servicio ML.
 
 ### Fase 3 — Endpoints en el API ← COMPLETADA (2026-05-17)
 - [x] `POST /api/v1/access/face/enroll` (multipart: `user_id`, `file`, `replace`):
@@ -163,7 +166,7 @@ trivial para CPU.
 ## 6. Estado
 
 - [x] Fase 1 — Base de datos (2026-05-17)
-- [x] Fase 2 — Servicio ML (código listo; falta desplegar en Railway)
+- [x] Fase 2 — Servicio ML (desplegado: demonfc-production.up.railway.app)
 - [x] Fase 3 — Endpoints API (2026-05-17)
 - [x] Fase 4 — Frontend (2026-05-17; pantallas listas, falta liveness)
 - [ ] Fase 5 — Enrolamiento masivo (OPCIONAL)

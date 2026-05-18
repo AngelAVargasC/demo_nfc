@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     # Clave del kiosco de la puerta para el endpoint de identificación.
     KIOSK_API_KEY: str = ""
     # Similitud coseno mínima para aceptar un match 1:N (calibrar con datos reales).
-    FACE_MATCH_THRESHOLD: float = 0.40
+    FACE_MATCH_THRESHOLD: float = 0.50
     # Margen mínimo entre el match #1 y el #2 (evita falsos positivos en 1:N).
     FACE_MATCH_MARGIN: float = 0.05
     # Máximo de perfiles faciales por usuario.
