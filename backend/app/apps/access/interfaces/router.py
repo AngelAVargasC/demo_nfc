@@ -1,10 +1,14 @@
 import uuid
 import time
 import secrets
+from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, Request, UploadFile, File, Form, Header, HTTPException
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
 from app.shared.database.base import get_db
+from app.apps.users.domain.models import User
+from app.apps.access.domain.models import AccessResult, FaceProfile, NFCTag
 from app.shared.config.settings import settings
 from app.shared.utils.response import ok, err, APIResponse
 from app.shared.security.rbac import get_current_user, require_roles, require_min_role, Role
@@ -185,4 +189,123 @@ async def face_identify(
         "message": result.get("message"),
         "user": user_out,
         "confidence": result.get("confidence"),
+    })
+
+
+def _naive(dt: datetime) -> datetime:
+    """Normaliza a naive para poder comparar timestamps de SQLite y Postgres."""
+    return dt.replace(tzinfo=None) if dt.tzinfo else dt
+
+
+@router.get("/dashboard", response_model=APIResponse)
+async def dashboard(
+    current_user: dict = Depends(require_min_role(Role.LECTOR)),
+    db: AsyncSession = Depends(get_db),
+):
+    """Métricas agregadas para el panel principal. Todo proviene de la BD."""
+    repo = AccessEventRepository(db)
+    events = await repo.get_recent(limit=2000)
+
+    now = datetime.now()
+    today = now.date()
+    yesterday = today - timedelta(days=1)
+    cutoff_24h = now - timedelta(hours=24)
+
+    today_events: list = []
+    yest_total = 0
+    last24: list = []
+    for e in events:
+        ts = _naive(e.timestamp)
+        d = ts.date()
+        if d == today:
+            today_events.append((e, ts))
+        elif d == yesterday:
+            yest_total += 1
+        if ts >= cutoff_24h:
+            last24.append(e)
+
+    granted = sum(1 for e, _ in today_events if e.result == AccessResult.GRANTED)
+    total = len(today_events)
+    denied = total - granted
+    success_rate = round(granted / total * 100) if total else 0
+    delta_pct = round((total - yest_total) / yest_total * 100, 1) if yest_total else None
+
+    # Histograma por hora del día actual.
+    hourly = [{"hour": h, "granted": 0, "denied": 0} for h in range(24)]
+    for e, ts in today_events:
+        slot = hourly[ts.hour]
+        slot["granted" if e.result == AccessResult.GRANTED else "denied"] += 1
+
+    # Métodos de acceso de hoy.
+    methods = {"nfc": 0, "face": 0}
+    for e, _ in today_events:
+        methods[e.method] = methods.get(e.method, 0) + 1
+
+    # Motivos de denegación en las últimas 24 h.
+    reasons: dict[str, int] = {}
+    denied_24h = 0
+    for e in last24:
+        if e.result == AccessResult.DENIED:
+            denied_24h += 1
+            key = e.denial_reason.value if e.denial_reason else "desconocido"
+            reasons[key] = reasons.get(key, 0) + 1
+    denial_reasons = [
+        {"reason": k, "count": v}
+        for k, v in sorted(reasons.items(), key=lambda x: -x[1])
+    ]
+
+    # Composición de la membresía.
+    total_members = int((await db.execute(select(func.count()).select_from(User))).scalar_one())
+    status_rows = (await db.execute(select(User.status, func.count()).group_by(User.status))).all()
+    by_status = {(s.value if hasattr(s, "value") else str(s)): int(c) for s, c in status_rows}
+    degree_rows = (await db.execute(select(User.degree, func.count()).group_by(User.degree))).all()
+    by_degree = {int(d.value if hasattr(d, "value") else d): int(c) for d, c in degree_rows}
+
+    # Cobertura de enrolamiento.
+    face_users = int(
+        (await db.execute(select(func.count(func.distinct(FaceProfile.user_id))))).scalar_one()
+    )
+    nfc_active = int(
+        (await db.execute(
+            select(func.count()).select_from(NFCTag).where(NFCTag.is_active.is_(True))
+        )).scalar_one()
+    )
+
+    recent = [
+        {
+            "id": str(e.id),
+            "nfc_uid": e.nfc_uid,
+            "result": e.result.value,
+            "denial_reason": e.denial_reason.value if e.denial_reason else None,
+            "timestamp": e.timestamp.isoformat(),
+            "location": e.location,
+            "method": e.method,
+            "user": UserOut.model_validate(e.user) if e.user else None,
+        }
+        for e in events[:8]
+    ]
+
+    return ok({
+        "today": {
+            "total": total,
+            "granted": granted,
+            "denied": denied,
+            "success_rate": success_rate,
+            "delta_pct": delta_pct,
+            "methods": methods,
+        },
+        "hourly": hourly,
+        "denial_reasons": denial_reasons,
+        "denied_24h": denied_24h,
+        "members": {
+            "total": total_members,
+            "by_status": by_status,
+            "by_degree": by_degree,
+        },
+        "enrollment": {
+            "face_users": face_users,
+            "nfc_active": nfc_active,
+        },
+        "recent": recent,
+        "generated_at": now.isoformat(),
     })
