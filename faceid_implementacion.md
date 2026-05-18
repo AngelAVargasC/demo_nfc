@@ -145,8 +145,11 @@ trivial para CPU.
 ### Fase 4 — Frontend (React) ← PANTALLAS LISTAS (2026-05-17)
 - [x] Hook `useCamera` (acceso a cámara web, captura de fotograma JPEG).
 - [x] `FaceIDPage` (`/faceid`) con dos pestañas:
-  - **Acceso facial**: captura → `POST face/identify` → panel permitido/denegado.
-  - **Enrolar rostro**: búsqueda/selección de usuario + captura → `POST face/enroll`.
+  - **Acceso facial**: lector guiado (óvalo + indicadores en vivo) con
+    **auto-identificación** al estabilizar el rostro → `POST face/identify` →
+    panel permitido/denegado → vuelve a escanear para la siguiente persona.
+  - **Enrolar rostro**: búsqueda/selección de usuario + captura guiada
+    multi-pose → `POST face/enroll`.
 - [x] Ruta `/faceid` e ítem de menú "Acceso facial".
 - [x] **Enrolamiento guiado** tipo onboarding (Nu/BBVA): óvalo guía centrado,
   detección de rostro en vivo en el navegador (`face-api.js`, modelo
