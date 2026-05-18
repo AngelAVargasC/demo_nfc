@@ -238,6 +238,86 @@
   color: var(--fid-no);
 }
 
+/* ---- Enrolamiento guiado (óvalo + feedback en vivo) --------------------- */
+.faceid_oval {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 56%;
+  height: 78%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  transition: border-color 200ms ease;
+}
+.faceid_oval_ok   { border-color: #22c55e; }
+.faceid_oval_warn { border-color: #f59e0b; }
+.faceid_oval_bad  { border-color: #ef4444; }
+
+.faceid_pose {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 12px;
+  z-index: 2;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+}
+.faceid_guide_msg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 14px;
+  z-index: 2;
+  padding: 0 12px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+
+.faceid_progress {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.faceid_dot {
+  width: 30px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+  transition: background 200ms ease;
+}
+.faceid_dot_done { background: var(--fid-ok); }
+
+.faceid_done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  text-align: center;
+}
+.faceid_done_title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--fid-ok);
+}
+.faceid_done_sub {
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
 /* ---- Responsive --------------------------------------------------------- */
 @media (max-width: 768px) {
   .faceid_grid { grid-template-columns: 1fr; }

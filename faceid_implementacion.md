@@ -148,8 +148,14 @@ trivial para CPU.
   - **Acceso facial**: captura → `POST face/identify` → panel permitido/denegado.
   - **Enrolar rostro**: búsqueda/selección de usuario + captura → `POST face/enroll`.
 - [x] Ruta `/faceid` e ítem de menú "Acceso facial".
-- La detección de rostro la hace el servicio ML (server-side); el navegador
-  envía el fotograma completo.
+- [x] **Enrolamiento guiado** tipo onboarding (Nu/BBVA): óvalo guía centrado,
+  detección de rostro en vivo en el navegador (`face-api.js`, modelo
+  auto-hospedado en `frontend/public/models/`), feedback de calidad
+  (centrado / distancia / un solo rostro), captura **automática** al mantener
+  el rostro estable, 3 capturas multi-pose con barra de progreso.
+  Archivos: `useFaceGuide.ts`, `FaceEnroll.tsx`, `FaceIdentify.tsx`.
+- La detección en el navegador es **solo para guiar**; el embedding de
+  reconocimiento lo sigue calculando el servicio ML (server-side).
 - Variable opcional del frontend: `VITE_KIOSK_API_KEY` (debe coincidir con
   `KIOSK_API_KEY` del backend).
 - [ ] **PENDIENTE: anti-spoofing / liveness.** Hoy la captura es de un solo
