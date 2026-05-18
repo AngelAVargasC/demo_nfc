@@ -49,6 +49,24 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
 }
+.faceid_launch_inner { width: 100%; }
+
+/* Desktop: la tarjeta ocupa todo el ancho y alto del área de contenido. */
+@media (min-width: 769px) {
+  .faceid_launch {
+    padding: 0;
+    min-height: calc(100dvh - var(--topbar-h, 60px) - 150px);
+  }
+  .faceid_launch_card {
+    flex: 1;
+    max-width: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+  }
+  .faceid_launch_inner { max-width: 440px; }
+}
 .faceid_launch_icon {
   display: flex;
   align-items: center;
